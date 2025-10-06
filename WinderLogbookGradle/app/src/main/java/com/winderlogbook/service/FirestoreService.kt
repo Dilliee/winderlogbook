@@ -572,4 +572,36 @@ class FirestoreService {
         }
         return map
     }
+    
+    // User Management Functions
+    suspend fun getUsers(): List<Map<String, Any>> {
+        return try {
+            val result = db.collection("users")
+                .whereEqualTo("status", "active")
+                .get()
+                .await()
+            
+            result.documents.map { document ->
+                val data = document.data?.toMutableMap() ?: mutableMapOf()
+                data["id"] = document.id
+                data
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting users", e)
+            emptyList()
+        }
+    }
+    
+    suspend fun syncUsersToLocalStorage(): String {
+        return try {
+            val users = getUsers()
+            val gson = com.google.gson.Gson()
+            val usersJson = gson.toJson(users)
+            Log.d(TAG, "Synced ${users.size} users to local storage")
+            usersJson
+        } catch (e: Exception) {
+            Log.e(TAG, "Error syncing users", e)
+            "[]"
+        }
+    }
 }

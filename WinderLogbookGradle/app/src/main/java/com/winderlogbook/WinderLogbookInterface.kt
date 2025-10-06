@@ -350,6 +350,32 @@ class WinderLogbookInterface(private val context: Context) {
             false
         }
     }
+    
+    @JavascriptInterface
+    fun syncUsers(): Boolean {
+        return try {
+            coroutineScope.launch {
+                val usersJson = withContext(Dispatchers.IO) {
+                    firestoreService.syncUsersToLocalStorage()
+                }
+                
+                // Call JavaScript callback with synced users
+                val activity = context as? MainActivity
+                activity?.runOnUiThread {
+                    activity.findViewById<android.webkit.WebView>(R.id.webView)?.evaluateJavascript(
+                        "if(typeof onUsersSynced === 'function') onUsersSynced('$usersJson');",
+                        null
+                    )
+                }
+                
+                showToast("Users synced successfully")
+            }
+            true
+        } catch (e: Exception) {
+            showToast("Error syncing users: ${e.message}")
+            false
+        }
+    }
 
     @JavascriptInterface
     fun startVoiceToText(fieldId: String): Boolean {

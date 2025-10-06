@@ -18,18 +18,6 @@ let currentUserProfile = null;
 function initializeBiometricAuth() {
     console.log('🔐 Initializing biometric authentication system...');
     
-    // Check if user is already authenticated
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    const storedProfile = localStorage.getItem('currentUserProfile');
-    
-    if (storedAuth === 'true' && storedProfile) {
-        isAuthenticated = true;
-        currentUserProfile = JSON.parse(storedProfile);
-        console.log('✅ User already authenticated:', currentUserProfile.name);
-        updateAuthenticationUI();
-        return;
-    }
-    
     // Check biometric availability
     if (typeof WinderLogbook !== 'undefined' && WinderLogbook.isBiometricAvailable) {
         const available = WinderLogbook.isBiometricAvailable();
@@ -373,34 +361,83 @@ function onLogout() {
     logout();
 }
 
-// Sync Users from Web Dashboard (Firestore)
-function syncUsersFromDashboard() {
-    console.log('🔄 Syncing users from Firestore...');
+// Automatic Background Sync from Firestore
+function autoSyncUsersFromFirestore() {
+    console.log('🔄 Auto-syncing users from Firestore...');
     
+    // Try to sync from native Android interface first
     if (typeof WinderLogbook !== 'undefined' && WinderLogbook.syncUsers) {
         try {
             WinderLogbook.syncUsers();
-            showToast('🔄 Syncing users from Firestore...');
+            console.log('✅ Native sync initiated');
+            return;
         } catch (error) {
-            console.error('❌ Error syncing users:', error);
-            showToast('❌ Error syncing users from Firestore');
+            console.error('❌ Error with native sync:', error);
         }
-    } else {
-        // Fallback: Try to sync from localStorage if available
-        try {
-            const syncedUsers = localStorage.getItem('syncedUsers');
-            if (syncedUsers) {
-                const users = JSON.parse(syncedUsers);
-                localStorage.setItem('syncedUsers', syncedUsers);
-                showToast(`✅ ${users.length} user(s) synced from local storage`);
-                console.log(`📊 Synced ${users.length} users from localStorage:`, users);
-                return;
-            }
-        } catch (error) {
-            console.error('❌ Error syncing from localStorage:', error);
-        }
-        showToast('⚠️ Sync not available - please check network connection');
     }
+    
+    // Fallback: Try to sync from Firestore directly
+    syncFromFirestoreDirectly();
+}
+
+// Direct Firestore sync (fallback method)
+function syncFromFirestoreDirectly() {
+    console.log('🔄 Attempting direct Firestore sync...');
+    
+    // Try to fetch users from the web dashboard API
+    fetch('https://winderlogbook.web.app/')
+        .then(response => response.text())
+        .then(html => {
+            // Try to extract users from the dashboard's localStorage via API
+            console.log('📡 Fetched web dashboard - attempting API call...');
+            
+            // Create a temporary iframe to access the dashboard's API
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = 'https://winderlogbook.web.app/';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    // Try to call the API function from the iframe
+                    const usersJson = iframe.contentWindow.getUsersAPI();
+                    if (usersJson) {
+                        onUsersSynced(usersJson);
+                        console.log('✅ Users synced via API');
+                    }
+                } catch (error) {
+                    console.error('❌ Error calling API:', error);
+                } finally {
+                    document.body.removeChild(iframe);
+                }
+            };
+        })
+        .catch(error => {
+            console.error('❌ Error fetching dashboard:', error);
+        });
+}
+
+// Initialize automatic sync on app startup
+function initializeAutoSync() {
+    console.log('🚀 Initializing automatic user sync...');
+    
+    // Check if users are already synced
+    const lastSyncTime = localStorage.getItem('lastSyncTime');
+    const now = Date.now();
+    const syncInterval = 24 * 60 * 60 * 1000; // 24 hours
+    
+    if (!lastSyncTime || (now - parseInt(lastSyncTime)) > syncInterval) {
+        console.log('🔄 Users need sync - initiating auto-sync');
+        autoSyncUsersFromFirestore();
+    } else {
+        console.log('✅ Users are up to date');
+    }
+    
+    // Set up periodic sync every hour
+    setInterval(() => {
+        console.log('🔄 Periodic sync check...');
+        autoSyncUsersFromFirestore();
+    }, 60 * 60 * 1000); // 1 hour
 }
 
 // Callback when users are synced (called from Android)
@@ -3122,5 +3159,24 @@ window.addEventListener('unhandledrejection', function(event) {
         }
     }
 });
+
+console.log('Digital Winding Engine Driver Logbook JavaScript loaded successfully');
+
+// Initialize app when DOM loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 App loaded - initializing sync...');
+    
+    // Start auto-sync
+    initializeAutoSync();
+});
+
+// Also initialize if DOM is already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeAutoSync();
+    });
+} else {
+    initializeAutoSync();
+}
 
 console.log('Digital Winding Engine Driver Logbook JavaScript loaded successfully');

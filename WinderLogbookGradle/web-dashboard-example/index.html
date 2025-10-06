@@ -1230,7 +1230,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getFirestore, collection, getDocs, addDoc, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, addDoc, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, where } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1794,19 +1794,62 @@
                 showNotification('✅ Demo users created and saved to Firestore', 'success');
                 
             } catch (error) {
-                console.error('❌ Error loading users from Firestore:', error);
-                showNotification('❌ Failed to load users from cloud storage. Please check your connection.', 'error');
+                console.warn('⚠️ Error loading users from Firestore, using localStorage fallback:', error);
+                showNotification('⚠️ Using local storage fallback. Cloud sync unavailable.', 'warning');
                 
-                // No localStorage fallback - require cloud storage
-                users = [];
+                // Try to load from localStorage as fallback
+                try {
+                    const localUsers = localStorage.getItem('syncedUsers');
+                    if (localUsers) {
+                        users = JSON.parse(localUsers);
+                        console.log('📱 Loaded users from localStorage fallback:', users.length);
+                        showNotification(`📱 Loaded ${users.length} users from local storage`, 'success');
+                    } else {
+                        users = [];
+                        console.log('📱 No local users found, starting with empty array');
+                    }
+                } catch (localError) {
+                    console.error('❌ Error loading from localStorage:', localError);
+                    users = [];
+                }
             }
             
             renderUsersTable();
         }
 
+        // Validate and clean user data before saving
+        function validateUserData(user) {
+            return {
+                userId: user.userId || generateUserId(),
+                employeeId: user.employeeId || '',
+                name: user.name || '',
+                username: user.username || '',
+                password: user.password || '',
+                email: user.email || '',
+                phone: user.phone || '',
+                jobDescription: user.jobDescription || '',
+                department: user.department || '',
+                shift: user.shift || 'Day',
+                role: user.role || 'engineer', // Default role
+                accessLevel: user.accessLevel || 'user',
+                fingerprintData: user.fingerprintData || '',
+                biometricEnrolled: user.biometricEnrolled || false,
+                status: user.status || 'active',
+                createdAt: user.createdAt || Date.now(),
+                updatedAt: user.updatedAt || Date.now()
+            };
+        }
+
         // Save users to Firestore and localStorage
         async function saveUsersToStorage() {
             console.log('💾 Saving users to Firestore and storage:', users);
+            
+            // Clean and validate all user data first
+            const cleanedUsers = users.map(user => validateUserData(user));
+            console.log('🧹 Cleaned user data:', cleanedUsers);
+            
+            // Update the global users array with cleaned data
+            users.splice(0, users.length, ...cleanedUsers);
             
             try {
                 // Save to Firestore if available
@@ -1822,63 +1865,65 @@
                         await window.deleteDoc(window.doc(window.db, 'users', doc.id));
                     }
                     
-                    // Add each user to Firestore
-                    for (const user of users) {
-                        const userData = {
-                            userId: user.userId,
-                            employeeId: user.employeeId,
-                            name: user.name,
-                            username: user.username,
-                            password: user.password,
-                            email: user.email,
-                            phone: user.phone,
-                            jobDescription: user.jobDescription,
-                            department: user.department,
-                            shift: user.shift,
-                            role: user.role,
-                            accessLevel: user.accessLevel,
-                            fingerprintData: user.fingerprintData,
-                            biometricEnrolled: user.biometricEnrolled,
-                            status: user.status,
-                            createdAt: user.createdAt,
-                            updatedAt: user.updatedAt || Date.now()
-                        };
-                        
-                        await window.addDoc(usersRef, userData);
+                    // Add each cleaned user to Firestore
+                    for (const user of cleanedUsers) {
+                        await window.addDoc(usersRef, user);
                     }
                     
                     console.log('✅ Users saved to Firestore successfully');
                     showNotification(`✅ ${users.length} users saved to Firestore`, 'success');
                 } else {
-                    console.error('❌ Firestore not available - CLOUD SYNC REQUIRED');
-                    showNotification('❌ Cloud storage not available. Please check your internet connection.', 'error');
-                    throw new Error('Firestore not available - cloud sync required');
+                    console.warn('⚠️ Firestore not available - using localStorage fallback');
+                    showNotification('⚠️ Cloud storage not available. Using local storage.', 'warning');
+                    // Don't throw error, just use localStorage fallback
                 }
                 
                 // CRITICAL: Also sync to mobile app key
-                const syncData = users.map(u => ({
+                const syncData = cleanedUsers.map(u => ({
                     userId: u.userId,
                     employeeId: u.employeeId,
                     name: u.name,
                     username: u.username,
                     password: u.password,
                     email: u.email,
+                    phone: u.phone,
                     jobDescription: u.jobDescription,
                     department: u.department,
                     shift: u.shift,
+                    role: u.role,
                     accessLevel: u.accessLevel,
                     fingerprintData: u.fingerprintData,
-                    biometricEnrolled: u.biometricEnrolled
+                    biometricEnrolled: u.biometricEnrolled,
+                    status: u.status
                 }));
                 localStorage.setItem('syncedUsers', JSON.stringify(syncData));
                 console.log('📱 Users also synced to mobile app key "syncedUsers":', syncData.length);
                 
             } catch (error) {
-                console.error('❌ Error saving users to Firestore:', error);
-                showNotification('❌ Failed to save users to cloud storage. Please check your connection.', 'error');
+                console.warn('⚠️ Error saving users to Firestore, using localStorage fallback:', error);
+                showNotification('⚠️ Using local storage fallback. Cloud sync unavailable.', 'warning');
                 
-                // DO NOT use localStorage fallback - require cloud storage
-                throw error;
+                // Still save to localStorage for mobile sync
+                const syncData = cleanedUsers.map(u => ({
+                    userId: u.userId,
+                    employeeId: u.employeeId,
+                    name: u.name,
+                    username: u.username,
+                    password: u.password,
+                    email: u.email,
+                    phone: u.phone,
+                    jobDescription: u.jobDescription,
+                    department: u.department,
+                    shift: u.shift,
+                    role: u.role,
+                    accessLevel: u.accessLevel,
+                    fingerprintData: u.fingerprintData,
+                    biometricEnrolled: u.biometricEnrolled,
+                    status: u.status
+                }));
+                localStorage.setItem('syncedUsers', JSON.stringify(syncData));
+                console.log('📱 Users saved to localStorage for mobile sync:', syncData.length);
+                showNotification(`📱 ${syncData.length} users saved to local storage`, 'success');
             }
             
             renderUsersTable();
@@ -1963,6 +2008,7 @@
             }
             
             const userData = {
+                userId: generateUserId(),
                 employeeId: employeeId.trim(),
                 name: name.trim(),
                 username: username.trim(),
@@ -1972,7 +2018,7 @@
                 jobDescription: jobDescription.trim(),
                 department: department.trim(),
                 shift: shift.trim(),
-                role: role.trim(),
+                role: role.trim() || 'engineer', // Default role if empty
                 accessLevel: accessLevel.trim(),
                 fingerprintData: fingerprintData.trim(),
                 biometricEnrolled: !!fingerprintData.trim(),
@@ -2102,12 +2148,11 @@
                 biometricEnrolled: u.biometricEnrolled
             }));
             
-            // Update sync time
+            // Update sync time and save to the key the mobile app expects
             localStorage.setItem('lastSyncTime', Date.now().toString());
+            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
             localStorage.setItem('autoSyncData', JSON.stringify(syncData));
             
-            // CRITICAL: Store users with the key that mobile app expects
-            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
             console.log('📱 Users stored for mobile app with key "syncedUsers":', syncData.length);
             
             // Update sync status in UI
@@ -2237,7 +2282,7 @@
         }
 
         // Test function to verify form submission
-        function testFormSubmission() {
+        async function testFormSubmission() {
             console.log('🧪 Testing form submission...'); // Form test
             
             // Fill form with test data
@@ -2307,6 +2352,34 @@
 
         // Make debug function globally available
         window.debugUserCreation = debugUserCreation;
+        
+        // API endpoint for mobile app to get users
+        function getUsersAPI() {
+            console.log('📡 API: Getting users for mobile app...');
+            
+            const syncData = users.map(u => ({
+                userId: u.userId || '',
+                employeeId: u.employeeId || '',
+                name: u.name || '',
+                username: u.username || '',
+                password: u.password || '',
+                email: u.email || '',
+                phone: u.phone || '',
+                jobDescription: u.jobDescription || '',
+                department: u.department || '',
+                shift: u.shift || 'Day',
+                role: u.role || 'engineer',
+                accessLevel: u.accessLevel || 'user',
+                fingerprintData: u.fingerprintData || '',
+                biometricEnrolled: u.biometricEnrolled || false,
+                status: u.status || 'active'
+            }));
+            
+            return JSON.stringify(syncData);
+        }
+        
+        // Make API available globally for mobile app
+        window.getUsersAPI = getUsersAPI;
 
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', async function() {
