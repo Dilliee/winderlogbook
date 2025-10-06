@@ -373,20 +373,33 @@ function onLogout() {
     logout();
 }
 
-// Sync Users from Web Dashboard
+// Sync Users from Web Dashboard (Firestore)
 function syncUsersFromDashboard() {
-    console.log('🔄 Syncing users from web dashboard...');
+    console.log('🔄 Syncing users from Firestore...');
     
     if (typeof WinderLogbook !== 'undefined' && WinderLogbook.syncUsers) {
         try {
             WinderLogbook.syncUsers();
-            showToast('🔄 Syncing users...');
+            showToast('🔄 Syncing users from Firestore...');
         } catch (error) {
             console.error('❌ Error syncing users:', error);
-            showToast('❌ Error syncing users');
+            showToast('❌ Error syncing users from Firestore');
         }
     } else {
-        showToast('⚠️ Sync not available in web mode');
+        // Fallback: Try to sync from localStorage if available
+        try {
+            const syncedUsers = localStorage.getItem('syncedUsers');
+            if (syncedUsers) {
+                const users = JSON.parse(syncedUsers);
+                localStorage.setItem('syncedUsers', syncedUsers);
+                showToast(`✅ ${users.length} user(s) synced from local storage`);
+                console.log(`📊 Synced ${users.length} users from localStorage:`, users);
+                return;
+            }
+        } catch (error) {
+            console.error('❌ Error syncing from localStorage:', error);
+        }
+        showToast('⚠️ Sync not available - please check network connection');
     }
 }
 

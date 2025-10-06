@@ -1252,8 +1252,12 @@
             window.db = db;
             window.collection = collection;
             window.getDocs = getDocs;
+            window.addDoc = addDoc;
+            window.doc = doc;
+            window.updateDoc = updateDoc;
+            window.deleteDoc = deleteDoc;
             
-            console.log('✅ Firebase initialized successfully');
+            console.log('✅ Firebase v9 SDK initialized successfully');
         } catch (error) {
             console.warn('⚠️ Firebase initialization failed, using localStorage mode:', error);
             // Set fallback values
@@ -1677,76 +1681,205 @@
         let users = [];
         let editingUserId = null;
 
-        // Load users from localStorage on startup
-        function loadUsersFromStorage() {
-            const storedUsers = localStorage.getItem('winderLogbookUsers');
-            if (storedUsers) {
-                users = JSON.parse(storedUsers);
-            } else {
-                // Create demo users
-                users = [
-                    {
-                        userId: generateUserId(),
-                        employeeId: 'EMP001',
-                        name: 'John Doe',
-                        username: 'jdoe',
-                        password: 'password123',
-                        email: 'john.doe@lucara.com',
-                        phone: '+267 123 4567',
-                        jobDescription: 'Winder Driver',
-                        department: 'Operations',
-                        shift: 'Day',
-                        accessLevel: 'user',
-                        fingerprintData: 'demo_fingerprint_1',
-                        biometricEnrolled: true,
-                        status: 'active',
-                        createdAt: Date.now()
-                    },
-                    {
-                        userId: generateUserId(),
-                        employeeId: 'EMP002',
-                        name: 'Jane Smith',
-                        username: 'jsmith',
-                        password: 'password123',
-                        email: 'jane.smith@lucara.com',
-                        phone: '+267 234 5678',
-                        jobDescription: 'Electrician',
-                        department: 'Electrical',
-                        shift: 'Night',
-                        accessLevel: 'user',
-                        fingerprintData: 'demo_fingerprint_2',
-                        biometricEnrolled: true,
-                        status: 'active',
-                        createdAt: Date.now()
+        // Load users from Firestore and localStorage
+        async function loadUsersFromStorage() {
+            console.log('📥 Loading users from Firestore and localStorage...');
+            
+            try {
+                // Try to load from Firestore first
+                if (window.db && window.collection && window.getDocs) {
+                    console.log('🔥 Loading from Firestore...');
+                    
+                    const usersRef = window.collection(window.db, 'users');
+                    const snapshot = await window.getDocs(usersRef);
+                    
+                    if (!snapshot.empty) {
+                        users = [];
+                        snapshot.forEach(doc => {
+                            const userData = doc.data();
+                            users.push({
+                                ...userData,
+                                firestoreId: doc.id
+                            });
+                        });
+                        
+                        console.log(`✅ Loaded ${users.length} users from Firestore`);
+                        
+                        // Update localStorage as backup
+                        localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+                        localStorage.setItem('syncedUsers', JSON.stringify(users.map(u => ({
+                            userId: u.userId,
+                            employeeId: u.employeeId,
+                            name: u.name,
+                            username: u.username,
+                            password: u.password,
+                            email: u.email,
+                            jobDescription: u.jobDescription,
+                            department: u.department,
+                            shift: u.shift,
+                            accessLevel: u.accessLevel,
+                            fingerprintData: u.fingerprintData,
+                            biometricEnrolled: u.biometricEnrolled
+                        }))));
+                        
+                        renderUsersTable();
+                        return;
                     }
-                ];
-                saveUsersToStorage();
+                }
+                
+                // Fallback to localStorage
+                const storedUsers = localStorage.getItem('winderLogbookUsers');
+                if (storedUsers) {
+                    users = JSON.parse(storedUsers);
+                    console.log(`📦 Loaded ${users.length} users from localStorage`);
+                } else {
+                    // Create demo users
+                    console.log('👥 Creating demo users...');
+                    users = [
+                        {
+                            userId: generateUserId(),
+                            employeeId: 'EMP001',
+                            name: 'John Doe',
+                            username: 'jdoe',
+                            password: 'password123',
+                            email: 'john.doe@lucara.com',
+                            phone: '+267 123 4567',
+                            jobDescription: 'Winder Driver',
+                            department: 'Operations',
+                            shift: 'Day',
+                            accessLevel: 'user',
+                            fingerprintData: 'demo_fingerprint_1',
+                            biometricEnrolled: true,
+                            status: 'active',
+                            createdAt: Date.now()
+                        },
+                        {
+                            userId: generateUserId(),
+                            employeeId: 'EMP002',
+                            name: 'Jane Smith',
+                            username: 'jsmith',
+                            password: 'password123',
+                            email: 'jane.smith@lucara.com',
+                            phone: '+267 234 5678',
+                            jobDescription: 'Electrician',
+                            department: 'Electrical',
+                            shift: 'Night',
+                            accessLevel: 'user',
+                            fingerprintData: 'demo_fingerprint_2',
+                            biometricEnrolled: true,
+                            status: 'active',
+                            createdAt: Date.now()
+                        }
+                    ];
+                    await saveUsersToStorage();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading users:', error);
+                showNotification('❌ Error loading users from Firestore', 'error');
+                
+                // Fallback to localStorage
+                const storedUsers = localStorage.getItem('winderLogbookUsers');
+                if (storedUsers) {
+                    users = JSON.parse(storedUsers);
+                    console.log(`📦 Fallback: Loaded ${users.length} users from localStorage`);
+                }
             }
+            
             renderUsersTable();
         }
 
-        // Save users to localStorage
-        function saveUsersToStorage() {
-            console.log('💾 Saving users to storage:', users);
-            localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+        // Save users to Firestore and localStorage
+        async function saveUsersToStorage() {
+            console.log('💾 Saving users to Firestore and storage:', users);
             
-            // CRITICAL: Also sync to mobile app key
-            const syncData = users.map(u => ({
-                userId: u.userId,
-                employeeId: u.employeeId,
-                name: u.name,
-                username: u.username,
-                password: u.password,
-                email: u.email,
-                jobDescription: u.jobDescription,
-                department: u.department,
-                shift: u.shift,
-                accessLevel: u.accessLevel,
-                fingerprintData: u.fingerprintData,
-                biometricEnrolled: u.biometricEnrolled
-            }));
-            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
-            console.log('📱 Users also synced to mobile app key "syncedUsers":', syncData.length);
+            try {
+                // Save to Firestore if available
+                if (window.db && window.addDoc && window.collection) {
+                    console.log('🔥 Saving to Firestore...');
+                    
+                    // Clear existing users in Firestore first
+                    const usersRef = window.collection(window.db, 'users');
+                    const existingSnapshot = await window.getDocs(usersRef);
+                    
+                    // Delete existing documents
+                    for (const doc of existingSnapshot.docs) {
+                        await window.deleteDoc(window.doc(window.db, 'users', doc.id));
+                    }
+                    
+                    // Add each user to Firestore
+                    for (const user of users) {
+                        const userData = {
+                            userId: user.userId,
+                            employeeId: user.employeeId,
+                            name: user.name,
+                            username: user.username,
+                            password: user.password,
+                            email: user.email,
+                            phone: user.phone,
+                            jobDescription: user.jobDescription,
+                            department: user.department,
+                            shift: user.shift,
+                            role: user.role,
+                            accessLevel: user.accessLevel,
+                            fingerprintData: user.fingerprintData,
+                            biometricEnrolled: user.biometricEnrolled,
+                            status: user.status,
+                            createdAt: user.createdAt,
+                            updatedAt: user.updatedAt || Date.now()
+                        };
+                        
+                        await window.addDoc(usersRef, userData);
+                    }
+                    
+                    console.log('✅ Users saved to Firestore successfully');
+                    showNotification(`✅ ${users.length} users saved to Firestore`, 'success');
+                } else {
+                    console.warn('⚠️ Firestore not available, using localStorage only');
+                }
+                
+                // Also save to localStorage as backup
+                localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+                
+                // CRITICAL: Also sync to mobile app key
+                const syncData = users.map(u => ({
+                    userId: u.userId,
+                    employeeId: u.employeeId,
+                    name: u.name,
+                    username: u.username,
+                    password: u.password,
+                    email: u.email,
+                    jobDescription: u.jobDescription,
+                    department: u.department,
+                    shift: u.shift,
+                    accessLevel: u.accessLevel,
+                    fingerprintData: u.fingerprintData,
+                    biometricEnrolled: u.biometricEnrolled
+                }));
+                localStorage.setItem('syncedUsers', JSON.stringify(syncData));
+                console.log('📱 Users also synced to mobile app key "syncedUsers":', syncData.length);
+                
+            } catch (error) {
+                console.error('❌ Error saving users:', error);
+                showNotification('❌ Error saving users to Firestore', 'error');
+                
+                // Fallback to localStorage only
+                localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+                localStorage.setItem('syncedUsers', JSON.stringify(users.map(u => ({
+                    userId: u.userId,
+                    employeeId: u.employeeId,
+                    name: u.name,
+                    username: u.username,
+                    password: u.password,
+                    email: u.email,
+                    jobDescription: u.jobDescription,
+                    department: u.department,
+                    shift: u.shift,
+                    accessLevel: u.accessLevel,
+                    fingerprintData: u.fingerprintData,
+                    biometricEnrolled: u.biometricEnrolled
+                }))));
+            }
             
             renderUsersTable();
             console.log('✅ Users saved and table rendered');
@@ -1781,7 +1914,7 @@
                 return;
             }
             
-            userForm.addEventListener('submit', function(e) {
+            userForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             console.log('📝 Form submitted!');
             
@@ -1857,7 +1990,8 @@
                     };
                     showNotification(`User ${userData.name} updated successfully!`, 'success');
                     
-                    // Automatically sync to mobile app
+                    // Save to Firestore and sync
+                    await saveUsersToStorage();
                     autoSyncToMobile();
                 }
                 editingUserId = null;
@@ -1871,11 +2005,11 @@
                 users.push(newUser);
                 showNotification(`User ${newUser.name} created successfully!`, 'success');
                 
-                // Automatically sync to mobile app
+                // Save to Firestore and sync
+                await saveUsersToStorage();
                 autoSyncToMobile();
             }
             
-            saveUsersToStorage();
             this.reset();
             document.getElementById('fingerprintData').value = '';
             document.getElementById('fingerprintStatus').innerHTML = '';
