@@ -851,6 +851,7 @@
                         <button type="submit" class="btn btn-success">✅ Create User & Sync to App</button>
                         <button type="reset" class="btn btn-warning">🗑️ Clear Form</button>
                         <button type="button" class="btn btn-info" onclick="testFormSubmission()" style="margin-left: 10px;">🧪 Test Form</button>
+                        <button type="button" class="btn btn-secondary" onclick="checkFormFields()" style="margin-left: 10px;">🔍 Check Fields</button>
                     </div>
                 </form>
             </div>
@@ -1765,20 +1766,64 @@
             e.preventDefault();
             console.log('📝 Form submitted!');
             
+            // Get all form values and log them for debugging
+            const employeeId = document.getElementById('employeeId').value;
+            const name = document.getElementById('userName').value;
+            const username = document.getElementById('userUsername').value;
+            const password = document.getElementById('userPassword').value;
+            const email = document.getElementById('userEmail').value;
+            const phone = document.getElementById('userPhone').value;
+            const jobDescription = document.getElementById('userJobDescription').value;
+            const department = document.getElementById('userDepartment').value;
+            const shift = document.getElementById('userShift').value;
+            const role = document.getElementById('userRole').value;
+            const accessLevel = document.getElementById('userAccessLevel').value;
+            const fingerprintData = document.getElementById('fingerprintData').value;
+            
+            console.log('🔍 Form field values:', {
+                employeeId, name, username, password, email, phone, 
+                jobDescription, department, shift, role, accessLevel, fingerprintData
+            });
+            
+            // Validate required fields
+            if (!username || username.trim() === '') {
+                showNotification('Please enter a username', 'error');
+                document.getElementById('userUsername').focus();
+                return;
+            }
+            
+            if (!password || password.trim() === '') {
+                showNotification('Please enter a password', 'error');
+                document.getElementById('userPassword').focus();
+                return;
+            }
+            
+            if (!name || name.trim() === '') {
+                showNotification('Please enter a full name', 'error');
+                document.getElementById('userName').focus();
+                return;
+            }
+            
+            if (!employeeId || employeeId.trim() === '') {
+                showNotification('Please enter an employee ID', 'error');
+                document.getElementById('employeeId').focus();
+                return;
+            }
+            
             const userData = {
-                employeeId: document.getElementById('employeeId').value,
-                name: document.getElementById('userName').value,
-                username: document.getElementById('userUsername').value,
-                password: document.getElementById('userPassword').value,
-                email: document.getElementById('userEmail').value,
-                phone: document.getElementById('userPhone').value,
-                jobDescription: document.getElementById('userJobDescription').value,
-                department: document.getElementById('userDepartment').value,
-                shift: document.getElementById('userShift').value,
-                role: document.getElementById('userRole').value,
-                accessLevel: document.getElementById('userAccessLevel').value,
-                fingerprintData: document.getElementById('fingerprintData').value,
-                biometricEnrolled: !!document.getElementById('fingerprintData').value,
+                employeeId: employeeId.trim(),
+                name: name.trim(),
+                username: username.trim(),
+                password: password.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+                jobDescription: jobDescription.trim(),
+                department: department.trim(),
+                shift: shift.trim(),
+                role: role.trim(),
+                accessLevel: accessLevel.trim(),
+                fingerprintData: fingerprintData.trim(),
+                biometricEnrolled: !!fingerprintData.trim(),
                 status: 'active'
             };
             
@@ -1983,6 +2028,50 @@
                         <br><small>Last sync: ${timeString}</small>
                     `;
                 });
+            }
+        }
+
+        // Check form fields function
+        function checkFormFields() {
+            console.log('🔍 Checking form fields...');
+            
+            const fields = {
+                employeeId: document.getElementById('employeeId'),
+                userName: document.getElementById('userName'),
+                userUsername: document.getElementById('userUsername'),
+                userPassword: document.getElementById('userPassword'),
+                userEmail: document.getElementById('userEmail'),
+                userPhone: document.getElementById('userPhone'),
+                userJobDescription: document.getElementById('userJobDescription'),
+                userDepartment: document.getElementById('userDepartment'),
+                userShift: document.getElementById('userShift'),
+                userAccessLevel: document.getElementById('userAccessLevel'),
+                fingerprintData: document.getElementById('fingerprintData')
+            };
+            
+            console.log('🔍 Field elements found:', Object.keys(fields).map(key => ({
+                id: key,
+                element: fields[key] ? '✅ Found' : '❌ Missing',
+                value: fields[key] ? fields[key].value : 'N/A',
+                valueLength: fields[key] ? fields[key].value.length : 0
+            })));
+            
+            // Check if any fields are missing
+            const missingFields = Object.keys(fields).filter(key => !fields[key]);
+            if (missingFields.length > 0) {
+                console.error('❌ Missing form fields:', missingFields);
+                showNotification(`Missing form fields: ${missingFields.join(', ')}`, 'error');
+                return;
+            }
+            
+            // Check values
+            const emptyFields = Object.keys(fields).filter(key => !fields[key].value || fields[key].value.trim() === '');
+            console.log('🔍 Empty fields:', emptyFields);
+            
+            if (emptyFields.length > 0) {
+                showNotification(`Empty fields: ${emptyFields.join(', ')}`, 'warning');
+            } else {
+                showNotification('All fields have values!', 'success');
             }
         }
 
