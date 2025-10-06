@@ -1242,14 +1242,24 @@
             measurementId: "G-LRJ8Y3L6VL"
         };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Initialize Firebase with error handling
+        try {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
 
-        // Make Firebase available globally
-        window.db = db;
-        window.collection = collection;
-        window.getDocs = getDocs;
+            // Make Firebase available globally
+            window.db = db;
+            window.collection = collection;
+            window.getDocs = getDocs;
+            
+            console.log('✅ Firebase initialized successfully');
+        } catch (error) {
+            console.warn('⚠️ Firebase initialization failed, using localStorage mode:', error);
+            // Set fallback values
+            window.db = null;
+            window.collection = null;
+            window.getDocs = null;
+        }
         window.addDoc = addDoc;
         window.onSnapshot = onSnapshot;
         window.query = query;
@@ -2003,12 +2013,61 @@
             form.dispatchEvent(event);
         }
 
+        // Debug function to test localStorage directly
+        function debugUserCreation() {
+            console.log('🧪 Testing localStorage user creation...');
+            
+            const testUser = {
+                userId: 'test_' + Date.now(),
+                employeeId: 'EMP999',
+                name: 'Debug Test User',
+                username: 'debuguser',
+                password: 'password123',
+                email: 'debug@test.com',
+                jobDescription: 'Winder Driver',
+                department: 'Operations',
+                shift: 'Day',
+                accessLevel: 'user',
+                fingerprintData: 'debug_fingerprint',
+                biometricEnrolled: true,
+                status: 'active',
+                createdAt: Date.now()
+            };
+            
+            console.log('🧪 Creating test user:', testUser);
+            
+            // Get existing users
+            let users = JSON.parse(localStorage.getItem('winderLogbookUsers') || '[]');
+            console.log('🧪 Existing users before:', users.length);
+            
+            // Add test user
+            users.push(testUser);
+            
+            // Save to localStorage
+            localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+            console.log('🧪 Users after save:', users.length);
+            
+            // Render table
+            renderUsersTable();
+            console.log('🧪 Table should be updated');
+            
+            // Test sync
+            autoSyncToMobile();
+            console.log('🧪 Auto-sync triggered');
+        }
+
+        // Make debug function globally available
+        window.debugUserCreation = debugUserCreation;
+
         // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 DOM loaded, initializing user management...');
             loadUsersFromStorage();
             updateSyncStatus();
             initializeUserForm();
+            
+            // Add debug button to console
+            console.log('🧪 Type debugUserCreation() in console to test user creation');
         });
     </script>
 </body>
