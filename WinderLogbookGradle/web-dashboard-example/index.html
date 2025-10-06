@@ -2229,11 +2229,10 @@
             
             console.log('🧪 Creating test user:', testUser);
             
-            // Get existing users
-            let users = JSON.parse(localStorage.getItem('winderLogbookUsers') || '[]');
+            // Get existing users from global users array
             console.log('🧪 Existing users before:', users.length);
             
-            // Add test user
+            // Add test user to global users array
             users.push(testUser);
             
             // Save to Firestore (no localStorage)
