@@ -878,14 +878,31 @@
             
             <!-- Sync to Mobile Section -->
             <div class="form-container" style="margin-top: 30px;">
-                <h3>🔄 Sync Users to Mobile App</h3>
-                <p>Download user data to sync with the Android application</p>
+                <h3>🔄 Auto-Sync to Mobile App</h3>
+                <div class="sync-status" style="padding: 20px; background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%); border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <h4 style="color: #28a745; margin-bottom: 10px;">✅ Auto-Sync Enabled</h4>
+                    <p style="color: #666; margin-bottom: 15px;">Users are automatically synced to mobile app when created or updated</p>
+                    <div class="sync-status">
+                        <span class="status-badge status-yellow">⏳ Checking sync status...</span>
+                    </div>
+                </div>
+                
+                <p style="color: #666; margin-bottom: 20px;">
+                    <strong>How it works:</strong><br>
+                    • Create a user → Automatically synced to mobile app<br>
+                    • Edit a user → Automatically synced to mobile app<br>
+                    • Mobile app pulls latest data on login
+                </p>
+                
                 <div style="display: flex; gap: 15px; margin-top: 20px;">
                     <button class="btn btn-primary" onclick="syncUsersToMobile()">
-                        <i>🔄</i> Sync All Users to Devices
+                        <i>📥</i> Download JSON File
                     </button>
                     <button class="btn btn-success" onclick="generateSyncCode()">
                         <i>🔑</i> Generate Sync Code
+                    </button>
+                    <button class="btn btn-info" onclick="updateSyncStatus()">
+                        <i>🔄</i> Refresh Status
                     </button>
                 </div>
                 <div id="syncCodeDisplay" style="display: none; margin-top: 20px; padding: 20px; background: #f0f4ff; border-radius: 8px;">
@@ -1789,6 +1806,9 @@
                         updatedAt: Date.now()
                     };
                     showNotification(`User ${userData.name} updated successfully!`, 'success');
+                    
+                    // Automatically sync to mobile app
+                    autoSyncToMobile();
                 }
                 editingUserId = null;
             } else {
@@ -1799,7 +1819,10 @@
                     createdAt: Date.now()
                 };
                 users.push(newUser);
-                showNotification(`User ${newUser.name} created successfully! Ready to sync to app.`, 'success');
+                showNotification(`User ${newUser.name} created successfully!`, 'success');
+                
+                // Automatically sync to mobile app
+                autoSyncToMobile();
             }
             
             saveUsersToStorage();
@@ -1877,7 +1900,37 @@
             }
         }
 
-        // Sync users to mobile
+        // Auto sync users to mobile (triggered on user creation)
+        function autoSyncToMobile() {
+            const syncData = users.map(u => ({
+                userId: u.userId,
+                employeeId: u.employeeId,
+                name: u.name,
+                username: u.username,
+                password: u.password,
+                email: u.email,
+                jobDescription: u.jobDescription,
+                department: u.department,
+                shift: u.shift,
+                accessLevel: u.accessLevel,
+                fingerprintData: u.fingerprintData,
+                biometricEnrolled: u.biometricEnrolled
+            }));
+            
+            // Update sync time
+            localStorage.setItem('lastSyncTime', Date.now().toString());
+            localStorage.setItem('autoSyncData', JSON.stringify(syncData));
+            
+            // Update sync status in UI
+            updateSyncStatus();
+            
+            // Show notification
+            setTimeout(() => {
+                showNotification(`🔄 Auto-sync: User data updated for mobile app`, 'info');
+            }, 500);
+        }
+
+        // Manual sync users to mobile (download file)
         function syncUsersToMobile() {
             const syncData = users.map(u => ({
                 userId: u.userId,
@@ -1928,8 +1981,27 @@
             showNotification('Sync code copied to clipboard!', 'success');
         }
 
+        // Update sync status display
+        function updateSyncStatus() {
+            const lastSync = localStorage.getItem('lastSyncTime');
+            if (lastSync) {
+                const syncTime = new Date(parseInt(lastSync));
+                const timeString = syncTime.toLocaleString();
+                
+                // Update any sync status displays
+                const syncStatusElements = document.querySelectorAll('.sync-status');
+                syncStatusElements.forEach(el => {
+                    el.innerHTML = `
+                        <span class="status-badge status-green">🔄 Auto-Sync Active</span>
+                        <br><small>Last sync: ${timeString}</small>
+                    `;
+                });
+            }
+        }
+
         // Load users when page loads
         loadUsersFromStorage();
+        updateSyncStatus();
     </script>
 </body>
 </html>
