@@ -9,167 +9,28 @@ let tripCounters = {
     explosives: 0
 };
 
-// ==================== BIOMETRIC AUTHENTICATION ====================
+// ==================== AUTHENTICATION (SIMPLIFIED) ====================
 
-let biometricOverlay = null;
-let isAuthenticated = false;
+let isAuthenticated = true; // Always authenticated - no biometric required
 
 function initializeBiometricAuth() {
-    console.log('🔐 Initializing biometric authentication...');
-    
-    biometricOverlay = document.getElementById('biometricOverlay');
-    
-    // Check biometric availability
-    checkBiometricAvailability();
-    
-    // Update UI elements
+    // BIOMETRIC AUTHENTICATION REMOVED - Always authenticated
+    console.log('✅ Authentication system disabled - always authenticated');
     updateAuthenticationUI();
-    
-    // Show overlay if not authenticated
-    if (!isAuthenticated) {
-        showBiometricOverlay();
-    }
 }
 
-function checkBiometricAvailability() {
-    if (typeof WinderLogbook !== 'undefined') {
-        const available = WinderLogbook.isBiometricAvailable();
-        const status = WinderLogbook.getBiometricStatus();
-        const message = WinderLogbook.getBiometricStatusMessage();
-        
-        console.log(`🔐 Biometric Status: ${status} - ${message}`);
-        
-        updateBiometricStatus(status, message);
-        
-        // Enable/disable authentication button
-        const authBtn = document.getElementById('biometricAuthBtn');
-        if (authBtn) {
-            authBtn.disabled = !available;
-            if (!available) {
-                authBtn.innerHTML = '<span class="btn-icon">❌</span>Not Available';
-            }
-        }
-    } else {
-        console.warn('⚠️ WinderLogbook interface not available');
-        updateBiometricStatus('error', 'Native interface not available');
-    }
-}
+// BIOMETRIC FUNCTIONS REMOVED - No longer needed
 
-function updateBiometricStatus(status, message) {
-    const statusEl = document.getElementById('biometricStatus');
-    const indicatorEl = document.getElementById('biometricIndicator');
-    const messageEl = document.getElementById('biometricMessage');
-    
-    if (statusEl && indicatorEl && messageEl) {
-        // Remove all status classes
-        statusEl.className = 'biometric-status';
-        
-        // Set appropriate status class and icon
-        switch (status) {
-            case 'available':
-                statusEl.classList.add('available');
-                indicatorEl.textContent = '✅';
-                break;
-            case 'no_hardware':
-            case 'hardware_unavailable':
-            case 'none_enrolled':
-            case 'unsupported':
-                statusEl.classList.add('error');
-                indicatorEl.textContent = '❌';
-                break;
-            default:
-                indicatorEl.textContent = '🔄';
-        }
-        
-        messageEl.textContent = message;
-    }
-}
+// BIOMETRIC AVAILABILITY CHECK REMOVED
 
-function startBiometricAuth() {
-    console.log('🔐 Starting biometric authentication...');
-    
-    if (typeof WinderLogbook !== 'undefined') {
-        WinderLogbook.startBiometricAuthentication();
-        
-        // Update UI to show authentication in progress
-        const authBtn = document.getElementById('biometricAuthBtn');
-        if (authBtn) {
-            authBtn.disabled = true;
-            authBtn.innerHTML = '<span class="btn-icon">🔄</span>Authenticating...';
-        }
-        
-        updateBiometricStatus('authenticating', 'Please complete biometric authentication...');
-    } else {
-        console.error('❌ WinderLogbook interface not available');
-        showToast('❌ Biometric authentication not available');
-    }
-}
-
-function skipAuthentication() {
-    console.log('⏭️ Skipping biometric authentication');
-    onBiometricAuthResult(true, 'Authentication skipped');
-}
-
-// Callback function called from native Android code
-function onBiometricAuthResult(success, message) {
-    console.log(`🔐 Biometric auth result: ${success ? 'SUCCESS' : 'FAILED'} - ${message}`);
-    
-    isAuthenticated = success;
-    
-    if (success) {
-        // Authentication successful
-        const modal = document.querySelector('.biometric-modal');
-        if (modal) {
-            modal.classList.add('auth-success');
-        }
-        
-        updateBiometricStatus('success', 'Authentication successful! ✅');
-        
-        setTimeout(() => {
-            hideBiometricOverlay();
-            updateAuthenticationUI();
-            showToast('✅ Successfully authenticated');
-        }, 1500);
-    } else {
-        // Authentication failed
-        updateBiometricStatus('error', `Authentication failed: ${message}`);
-        
-        // Re-enable authentication button
-        const authBtn = document.getElementById('biometricAuthBtn');
-        if (authBtn) {
-            authBtn.disabled = false;
-            authBtn.innerHTML = '<span class="btn-icon">👆</span>Try Again';
-        }
-        
-        showToast(`❌ Authentication failed: ${message}`);
-    }
-}
-
-function showBiometricOverlay() {
-    if (biometricOverlay) {
-        biometricOverlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    }
-}
-
-function hideBiometricOverlay() {
-    if (biometricOverlay) {
-        biometricOverlay.classList.add('hidden');
-        document.body.style.overflow = 'auto'; // Restore scrolling
-    }
-}
+// ALL BIOMETRIC FUNCTIONS REMOVED - Authentication disabled
 
 function updateAuthenticationUI() {
-    // Update session status
+    // Update session status - Always authenticated
     const sessionStatusEl = document.getElementById('sessionStatus');
     if (sessionStatusEl) {
-        if (isAuthenticated) {
-            sessionStatusEl.textContent = 'Authenticated ✅';
-            sessionStatusEl.style.color = '#4CAF50';
-        } else {
-            sessionStatusEl.textContent = 'Not authenticated ❌';
-            sessionStatusEl.style.color = '#F44336';
-        }
+        sessionStatusEl.textContent = 'Authenticated ✅';
+        sessionStatusEl.style.color = '#4CAF50';
     }
     
     // Get current user and shift from native
@@ -188,12 +49,65 @@ function updateAuthenticationUI() {
     }
 }
 
+// Toast notification function with fallback
+function showToast(message) {
+    try {
+        if (typeof WinderLogbook !== 'undefined' && WinderLogbook.showToast) {
+            WinderLogbook.showToast(message);
+        } else {
+            // Fallback for web mode or when interface is not available
+            console.log('📱 Toast:', message);
+            
+            // Create a simple toast notification for web mode
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #333;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-size: 14px;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            
+            // Add animation styles if not already present
+            if (!document.getElementById('toastStyles')) {
+                const style = document.createElement('style');
+                style.id = 'toastStyles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+    } catch (error) {
+        console.error('❌ Error showing toast:', error);
+        console.log('📱 Toast (fallback):', message);
+    }
+}
+
 // Callback function called from native Android code when user logs out
 function onLogout() {
     console.log('🔓 User logged out');
-    isAuthenticated = false;
-    updateAuthenticationUI();
-    showBiometricOverlay();
+    // No logout required - always authenticated
     showToast('🔓 Logged out successfully');
 }
 
@@ -1268,8 +1182,39 @@ function startWeeklyRiskAssessment() {
     const modal = document.getElementById('weeklyRiskAssessmentModal');
     if (modal) {
         modal.style.display = 'block';
-        console.log('🛡️ Weekly risk assessment modal opened');
+        
+        // Initialize form with default values
+        initializeIndustrialSafetyForm();
+        
+        console.log('🛡️ Industrial Safety Risk Assessment modal opened');
     }
+}
+
+// Initialize Industrial Safety Form
+function initializeIndustrialSafetyForm() {
+    // Generate unique document serial number
+    const serialNumber = generateDocumentSerialNumber();
+    document.getElementById('documentSerialNumber').value = serialNumber;
+    
+    // Set current date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('documentDate').value = today;
+    
+    // Initialize signature canvas
+    initializeSignatureCanvas();
+    
+    console.log('📋 Industrial Safety Form initialized with serial:', serialNumber);
+}
+
+// Generate unique document serial number
+function generateDocumentSerialNumber() {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const time = Date.now().toString().slice(-4);
+    
+    return `WL-${year}${month}${day}-${time}`;
 }
 
 // Close Weekly Risk Assessment
@@ -1278,59 +1223,214 @@ function closeWeeklyRiskAssessment() {
     if (modal) {
         modal.style.display = 'none';
         // Clear form data
-        document.getElementById('weeklyHazardId').value = '';
-        document.getElementById('weeklyRiskLevel').value = '';
-        document.getElementById('weeklySafetyMeasures').value = '';
-        // Clear PPE checkboxes
-        for (let i = 1; i <= 5; i++) {
-            const checkbox = document.getElementById(`weeklyPPE${i}`);
-            if (checkbox) checkbox.checked = false;
+        clearIndustrialSafetyForm();
+        console.log('🛡️ Industrial Safety Risk Assessment modal closed');
+    }
+}
+
+// Clear Industrial Safety Form
+function clearIndustrialSafetyForm() {
+    // Clear all form fields
+    const form = document.getElementById('weeklyRiskAssessmentModal');
+    if (form) {
+        const inputs = form.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else if (input.type === 'date') {
+                input.value = new Date().toISOString().split('T')[0];
+            } else if (input.id === 'documentSerialNumber') {
+                // Keep serial number - don't clear it
+                return;
+            } else {
+                input.value = '';
+            }
+        });
+    }
+    
+    // Clear signature
+    clearSignature();
+    
+    // Reset tab to first one
+    showRiskTab('lifting');
+    
+    // Clear all checklist statuses
+    const statusButtons = document.querySelectorAll('.status-btn.active');
+    statusButtons.forEach(btn => btn.classList.remove('active'));
+}
+
+// Show Risk Category Tab
+function showRiskTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab content
+    const selectedTab = document.getElementById(`${tabName}-tab`);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    // Add active class to selected tab button
+    const selectedButton = document.querySelector(`[onclick="showRiskTab('${tabName}')"]`);
+    if (selectedButton) {
+        selectedButton.classList.add('active');
+    }
+    
+    console.log(`📋 Switched to ${tabName} tab`);
+}
+
+// Set Checklist Status
+function setChecklistStatus(itemId, status) {
+    // Remove active class from all status buttons for this item
+    const item = document.querySelector(`[onclick*="${itemId}"]`).closest('.checklist-item');
+    if (item) {
+        const statusButtons = item.querySelectorAll('.status-btn');
+        statusButtons.forEach(btn => btn.classList.remove('active'));
+        
+        // Add active class to selected status button
+        const selectedButton = item.querySelector(`[onclick="setChecklistStatus('${itemId}', '${status}')"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('active');
         }
-        console.log('🛡️ Weekly risk assessment modal closed');
+        
+        // Update item border color based on status
+        if (status === 'go') {
+            item.style.borderLeftColor = '#28a745';
+        } else if (status === 'no-go') {
+            item.style.borderLeftColor = '#dc3545';
+        }
+    }
+    
+    console.log(`✅ ${itemId} marked as ${status.toUpperCase()}`);
+}
+
+// Initialize Signature Canvas
+function initializeSignatureCanvas() {
+    const canvas = document.getElementById('signatureCanvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    
+    // Mouse events
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        lastX = currentX;
+        lastY = currentY;
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
+    
+    canvas.addEventListener('mouseout', () => {
+        isDrawing = false;
+    });
+    
+    // Touch events for mobile
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const currentX = touch.clientX - rect.left;
+        const currentY = touch.clientY - rect.top;
+        
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        lastX = currentX;
+        lastY = currentY;
+    });
+    
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        isDrawing = false;
+    });
+}
+
+// Clear Signature
+function clearSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 }
 
 // Complete Weekly Risk Assessment
 function completeWeeklyRiskAssessment() {
-    console.log('🛡️ Starting weekly risk assessment completion...');
+    console.log('🛡️ Starting industrial safety risk assessment completion...');
     
     try {
-        const hazardId = document.getElementById('weeklyHazardId').value;
-        const riskLevel = document.getElementById('weeklyRiskLevel').value;
-        const safetyMeasures = document.getElementById('weeklySafetyMeasures').value;
-        
-        console.log('📋 Risk assessment form data:', { hazardId, riskLevel, safetyMeasures });
+        // Collect all form data
+        const formData = collectIndustrialSafetyFormData();
         
         // Validate required fields
-        if (!hazardId || !riskLevel || !safetyMeasures) {
-            showToast('❌ Please complete all required fields');
-            console.warn('❌ Missing required fields:', { hazardId: !!hazardId, riskLevel: !!riskLevel, safetyMeasures: !!safetyMeasures });
+        if (!validateIndustrialSafetyForm(formData)) {
             return;
         }
         
-        // Collect PPE data
-        const ppeRequired = [];
-        for (let i = 1; i <= 5; i++) {
-            const checkbox = document.getElementById(`weeklyPPE${i}`);
-            if (checkbox && checkbox.checked) {
-                // Get the text from the parent label
-                const labelText = checkbox.parentElement.textContent.trim();
-                ppeRequired.push(labelText);
-                console.log(`✅ PPE selected: ${labelText}`);
-            }
-        }
+        console.log('📋 Industrial safety form data:', formData);
         
         // Save risk assessment data
         const riskAssessmentData = {
-            hazardIdentification: hazardId,
-            riskLevel: riskLevel,
-            safetyMeasures: safetyMeasures,
-            ppeRequired: ppeRequired,
+            documentSerialNumber: formData.documentSerialNumber,
+            date: formData.date,
+            personInCharge: formData.personInCharge,
+            expectedWork: formData.expectedWork,
+            activitiesToPerform: formData.activitiesToPerform,
+            sopReference: formData.sopReference,
+            jhaReference: formData.jhaReference,
+            emergencyContacts: formData.emergencyContacts,
+            riskCategories: formData.riskCategories,
+            workPlan: formData.workPlan,
+            signature: formData.signature,
             completedBy: currentUser,
             completedAt: new Date().toISOString()
         };
         
-        console.log('💾 Saving risk assessment data:', riskAssessmentData);
+        console.log('💾 Saving industrial safety risk assessment data:', riskAssessmentData);
         
         // Save to storage and mark as completed
         localStorage.setItem('weeklyRiskAssessment', JSON.stringify(riskAssessmentData));
@@ -1345,11 +1445,11 @@ function completeWeeklyRiskAssessment() {
         
         // Close modal and show success
         closeWeeklyRiskAssessment();
-        showToast('✅ Risk Assessment completed successfully');
+        showToast('✅ Industrial Safety Risk Assessment completed successfully');
         
         // Save entry data
         const entryData = {
-            type: 'weekly_risk_assessment',
+            type: 'industrial_safety_risk_assessment',
             data: riskAssessmentData,
             timestamp: Date.now(),
             date: new Date().toISOString().split('T')[0],
@@ -1359,11 +1459,141 @@ function completeWeeklyRiskAssessment() {
         console.log('📤 Saving entry data:', entryData);
         saveEntryData(entryData);
         
-        console.log('✅ Weekly risk assessment completed successfully');
+        console.log('✅ Industrial safety risk assessment completed successfully');
         
     } catch (error) {
-        console.error('❌ Error completing weekly risk assessment:', error);
+        console.error('❌ Error completing industrial safety risk assessment:', error);
         showToast('❌ Error saving risk assessment. Please try again.');
+    }
+}
+
+// Collect Industrial Safety Form Data
+function collectIndustrialSafetyFormData() {
+    const formData = {
+        documentSerialNumber: document.getElementById('documentSerialNumber').value,
+        date: document.getElementById('documentDate').value,
+        personInCharge: document.getElementById('personInCharge').value,
+        expectedWork: document.getElementById('expectedWork').value,
+        activitiesToPerform: document.getElementById('activitiesToPerform').value,
+        sopReference: document.getElementById('sopReference').value,
+        jhaReference: document.getElementById('jhaReference').value,
+        emergencyContacts: {
+            safetyContactName: document.getElementById('safetyContactName').value,
+            safetyContactPhone: document.getElementById('safetyContactPhone').value,
+            emergencyContactName: document.getElementById('emergencyContactName').value,
+            emergencyContactPhone: document.getElementById('emergencyContactPhone').value
+        },
+        riskCategories: {},
+        workPlan: {
+            preparationPhase: document.getElementById('preparationPhase').value,
+            executionPhase: document.getElementById('executionPhase').value,
+            completionPhase: document.getElementById('completionPhase').value
+        },
+        signature: {
+            name: document.getElementById('signatureName').value,
+            date: document.getElementById('signatureDate').value,
+            canvasData: getSignatureCanvasData()
+        }
+    };
+    
+    // Collect risk category data
+    const riskCategories = ['lifting', 'hotwork', 'energy', 'heights'];
+    riskCategories.forEach(category => {
+        formData.riskCategories[category] = collectRiskCategoryData(category);
+    });
+    
+    return formData;
+}
+
+// Collect Risk Category Data
+function collectRiskCategoryData(category) {
+    const categoryData = {};
+    const checklistItems = document.querySelectorAll(`#${category}-tab .checklist-item`);
+    
+    checklistItems.forEach(item => {
+        const itemText = item.querySelector('.item-text').textContent;
+        const activeStatusBtn = item.querySelector('.status-btn.active');
+        const notes = item.querySelector('.item-notes').value;
+        
+        if (activeStatusBtn) {
+            const status = activeStatusBtn.classList.contains('go') ? 'go' : 'no-go';
+            categoryData[itemText] = {
+                status: status,
+                notes: notes
+            };
+        }
+    });
+    
+    return categoryData;
+}
+
+// Get Signature Canvas Data
+function getSignatureCanvasData() {
+    const canvas = document.getElementById('signatureCanvas');
+    if (canvas) {
+        return canvas.toDataURL();
+    }
+    return null;
+}
+
+// Validate Industrial Safety Form
+function validateIndustrialSafetyForm(formData) {
+    const requiredFields = [
+        { field: 'personInCharge', label: 'Person in Charge' },
+        { field: 'expectedWork', label: 'Expected Work' },
+        { field: 'activitiesToPerform', label: 'Activities to be Performed' }
+    ];
+    
+    for (const field of requiredFields) {
+        if (!formData[field.field] || formData[field.field].trim() === '') {
+            showToast(`❌ Please complete the ${field.label} field`);
+            console.warn(`❌ Missing required field: ${field.field}`);
+            return false;
+        }
+    }
+    
+    // Check if at least one risk category has been assessed
+    const hasRiskAssessment = Object.values(formData.riskCategories).some(category => 
+        Object.keys(category).length > 0
+    );
+    
+    if (!hasRiskAssessment) {
+        showToast('❌ Please assess at least one risk category');
+        console.warn('❌ No risk categories assessed');
+        return false;
+    }
+    
+    // Check if signature is provided
+    if (!formData.signature.name || formData.signature.name.trim() === '') {
+        showToast('❌ Please provide a signature name');
+        console.warn('❌ Missing signature name');
+        return false;
+    }
+    
+    return true;
+}
+
+// Save Risk Assessment (Draft)
+function saveRiskAssessment() {
+    try {
+        const formData = collectIndustrialSafetyFormData();
+        
+        // Save as draft
+        const draftData = {
+            ...formData,
+            status: 'draft',
+            savedAt: new Date().toISOString(),
+            savedBy: currentUser
+        };
+        
+        localStorage.setItem('industrialSafetyDraft', JSON.stringify(draftData));
+        showToast('💾 Risk Assessment saved as draft');
+        
+        console.log('📝 Industrial safety risk assessment saved as draft:', draftData);
+        
+    } catch (error) {
+        console.error('❌ Error saving risk assessment draft:', error);
+        showToast('❌ Error saving draft. Please try again.');
     }
 }
 
@@ -1938,15 +2168,9 @@ function initializeApp() {
     
     console.log(`Initialized: ${currentShift} shift with driver ${currentUser}`);
     
-    // Initialize biometric authentication with error handling
-    setTimeout(() => {
-        try {
-            initializeBiometricAuth();
-            console.log('✅ Biometric auth initialized');
-        } catch (error) {
-            console.error('❌ Error initializing biometric auth:', error);
-        }
-    }, 500); // Small delay to ensure DOM is fully loaded
+    // Authentication system disabled - always authenticated
+    console.log('✅ Authentication system disabled - always authenticated');
+    updateAuthenticationUI();
     
     // Load user profile and auto-select roles with error handling
     setTimeout(() => {
@@ -2521,59 +2745,48 @@ function updateSignatureStatus(shift, action, signature) {
     }
 }
 
-function saveSignatureData(shift, action, signature) {
-    const signatureKey = `${shift}_${action}_signature`;
-    const signatureData = {
-        shift: shift,
-        action: action,
-        signature: signature,
-        timestamp: Date.now()
-    };
-    
-    if (typeof WinderLogbook !== 'undefined') {
-        WinderLogbook.saveLogbookEntry(JSON.stringify({
-            entryType: 'biometric_signature',
-            data: signatureData
-        }));
-    } else {
-        // Save to local storage
-        const stored = JSON.parse(localStorage.getItem('biometricSignatures') || '{}');
-        stored[signatureKey] = signatureData;
-        localStorage.setItem('biometricSignatures', JSON.stringify(stored));
-    }
-}
+// BIOMETRIC SIGNATURE FUNCTIONS REMOVED
 
-function loadStoredSignatures() {
-    // Load and display any stored signatures on app start
-    const stored = localStorage.getItem('biometricSignatures');
-    if (stored) {
-        try {
-            const signatures = JSON.parse(stored);
-            Object.keys(signatures).forEach(key => {
-                const data = signatures[key];
-                updateSignatureStatus(data.shift, data.action, data.signature);
-            });
-        } catch (e) {
-            console.error('Error loading stored signatures:', e);
-        }
-    }
-}
-
-// Load stored signatures on app start
-document.addEventListener('DOMContentLoaded', function() {
-    loadStoredSignatures();
-});
+// BIOMETRIC SIGNATURE LOADING DISABLED
 
 // Auto-save functionality
 setInterval(() => {
     saveShiftData();
 }, 5 * 60 * 1000);
 
-// Error handling
+// Enhanced error handling
 window.addEventListener('error', function(event) {
     console.error('Application error:', event.error);
+    console.error('Error stack:', event.error?.stack);
+    console.error('Error details:', {
+        message: event.error?.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+    });
+    
+    // Show error toast if interface is available
     if (typeof WinderLogbook !== 'undefined') {
-        WinderLogbook.showToast('An error occurred in the application');
+        try {
+            WinderLogbook.showToast('An error occurred in the application');
+        } catch (toastError) {
+            console.error('Could not show error toast:', toastError);
+        }
+    }
+});
+
+// Handle unhandled promise rejections
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    console.error('Promise rejection stack:', event.reason?.stack);
+    
+    // Show error toast if interface is available
+    if (typeof WinderLogbook !== 'undefined') {
+        try {
+            WinderLogbook.showToast('An unexpected error occurred');
+        } catch (toastError) {
+            console.error('Could not show error toast:', toastError);
+        }
     }
 });
 

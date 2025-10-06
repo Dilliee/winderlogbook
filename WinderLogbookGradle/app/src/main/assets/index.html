@@ -26,192 +26,7 @@
             padding: 15px;
         }
 
-        /* ==================== BIOMETRIC AUTHENTICATION STYLES ==================== */
-        
-        .biometric-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-        }
-
-        .biometric-overlay.hidden {
-            display: none;
-        }
-
-        .biometric-modal {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .biometric-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .biometric-modal h2 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-        }
-
-        .biometric-modal p {
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .biometric-status {
-            background: #F8F9FA;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .biometric-status .status-indicator {
-            font-size: 1.2rem;
-            animation: spin 1s linear infinite;
-        }
-
-        .biometric-status.available .status-indicator {
-            animation: none;
-        }
-
-        .biometric-status.error .status-indicator {
-            animation: none;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .status-message {
-            font-size: 0.9rem;
-            color: #555;
-            flex: 1;
-            text-align: left;
-        }
-
-        .biometric-actions {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .biometric-btn {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .biometric-btn.primary {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-        }
-
-        .biometric-btn.primary:hover {
-            background: linear-gradient(135deg, #45a049, #3d8b40);
-            transform: translateY(-2px);
-        }
-
-        .biometric-btn.primary:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .biometric-btn.secondary {
-            background: #f8f9fa;
-            color: #666;
-            border: 2px solid #ddd;
-        }
-
-        .biometric-btn.secondary:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-        }
-
-        .btn-icon {
-            font-size: 1.1rem;
-        }
-
-        .auth-info {
-            background: #F8F9FA;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: left;
-        }
-
-        .auth-info > div {
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .auth-info > div:last-child {
-            margin-bottom: 0;
-        }
-
-        .auth-info strong {
-            color: #333;
-            margin-right: 8px;
-        }
-
-        .auth-info span {
-            color: #666;
-        }
-
-        .auth-success {
-            animation: successPulse 0.6s ease-out;
-        }
-
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        /* BIOMETRIC AUTHENTICATION STYLES REMOVED */
 
         /* ==================== LOGBOOK STYLES ==================== */
 
@@ -841,6 +656,320 @@
             margin: 2% auto;
         }
 
+        /* Industrial Safety Form Styles */
+        .industrial-safety-form {
+            max-width: 1400px;
+            width: 98%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 1% auto;
+            padding: 0;
+        }
+        
+        .industrial-safety-form .modal-body {
+            max-height: 75vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .document-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-field {
+            flex: 1;
+        }
+
+        .header-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #e3f2fd;
+        }
+
+        .header-field input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .work-details-section, .emergency-contacts, .risk-categories, .work-plan-section, .signature-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .contact-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #dc3545;
+        }
+
+        .contact-group input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            border: none;
+            background: #e9ecef;
+            color: #495057;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #dee2e6;
+            color: #495057;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Risk Checklist Styles */
+        .risk-checklist {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .checklist-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .checklist-item {
+            display: grid;
+            grid-template-columns: 2fr 180px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #6c757d;
+        }
+
+        .item-text {
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .status-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .status-btn.go {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .status-btn.go.active {
+            background: #28a745;
+            color: white;
+            border-color: #1e7e34;
+            transform: scale(1.05);
+        }
+
+        .status-btn.no-go {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .status-btn.no-go.active {
+            background: #dc3545;
+            color: white;
+            border-color: #bd2130;
+            transform: scale(1.05);
+        }
+
+        .item-notes {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+
+        /* Work Plan Styles */
+        .work-phases {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .phase {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        .phase h4 {
+            color: #007bff;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .phase textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 13px;
+        }
+
+        /* Signature Section */
+        .signature-container {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            border: 2px solid #dee2e6;
+            text-align: center;
+        }
+
+        #signatureCanvas {
+            border: 2px dashed #ced4da;
+            border-radius: 6px;
+            background: #f8f9fa;
+            cursor: crosshair;
+        }
+
+        .signature-controls {
+            margin-top: 10px;
+        }
+
+        .signature-info {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .signature-info input {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        /* Color Coding for Risk Categories */
+        .tab-btn:nth-child(1) { border-left: 4px solid #28a745; } /* Lifting - Forest Green */
+        .tab-btn:nth-child(2) { border-left: 4px solid #fd7e14; } /* Hot Work - Fiery Orange */
+        .tab-btn:nth-child(3) { border-left: 4px solid #007bff; } /* Energy - Electric Blue */
+        .tab-btn:nth-child(4) { border-left: 4px solid #6f42c1; } /* Heights - Deep Purple */
+
+        /* Mobile responsive adjustments for industrial safety form */
+        @media (max-width: 1024px) {
+            .industrial-safety-form {
+                width: 100%;
+                max-height: 95vh;
+                margin: 0;
+            }
+            
+            .industrial-safety-form .modal-body {
+                max-height: 80vh;
+                padding: 15px;
+            }
+            
+            .checklist-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .status-toggle {
+                justify-content: center;
+                margin: 10px 0;
+            }
+            
+            .work-phases {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .signature-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
         .electrical-checklist .modal-body {
             padding: 15px;
             max-height: 70vh;
@@ -1410,42 +1539,7 @@
     </style>
 </head>
 <body>
-    <!-- Biometric Authentication Overlay -->
-    <div id="biometricOverlay" class="biometric-overlay">
-        <div class="biometric-modal">
-            <div class="biometric-icon">🔐</div>
-            <h2>Secure Access Required</h2>
-            <p>Use your fingerprint or face recognition to access the Winder Logbook</p>
-            
-            <div class="biometric-status" id="biometricStatus">
-                <div class="status-indicator" id="biometricIndicator">🔄</div>
-                <div class="status-message" id="biometricMessage">Checking biometric availability...</div>
-            </div>
-            
-            <div class="biometric-actions">
-                <button id="biometricAuthBtn" class="biometric-btn primary" onclick="startBiometricAuth()">
-                    <span class="btn-icon">👆</span>
-                    Authenticate
-                </button>
-                <button id="skipAuthBtn" class="biometric-btn secondary" onclick="skipAuthentication()">
-                    <span class="btn-icon">⏭️</span>
-                        Skip Authentication
-                </button>
-            </div>
-            
-            <div class="auth-info">
-                <div class="user-info">
-                    <strong>User:</strong> <span id="currentUserDisplay">Bays Draganovic</span>
-                </div>
-                <div class="shift-info">
-                    <strong>Shift:</strong> <span id="currentShiftDisplay">Day Shift</span>
-                </div>
-                <div class="session-info">
-                    <strong>Session:</strong> <span id="sessionStatus">Not authenticated</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- BIOMETRIC AUTHENTICATION OVERLAY REMOVED -->
 
     <div class="container">
         <!-- Logbook Header -->
@@ -2130,46 +2224,355 @@
         </div>
     </div>
 
-    <!-- Weekly Risk Assessment Modal -->
+    <!-- Electronic Winder Logbook Risk Assessment Modal -->
     <div class="modal" id="weeklyRiskAssessmentModal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content industrial-safety-form">
             <div class="modal-header">
-                <h3>🛡️ Weekly Maintenance Risk Assessment</h3>
+                <h2>🛠️ Main Winder Safety Logbook – Lucara Karowe Mine</h2>
                 <span class="close" onclick="closeWeeklyRiskAssessment()">&times;</span>
             </div>
-            <div class="modal-body">
-                <div class="risk-form-section">
-                    <h4>Risk Assessment Details</h4>
-                    <div class="form-group">
-                        <label>Hazard Identification:</label>
-                        <textarea id="weeklyHazardId" rows="3" placeholder="Identify potential hazards for electrical maintenance work..."></textarea>
+            
+            <!-- Document Header -->
+            <div class="document-header">
+                <div class="header-row">
+                    <div class="header-field">
+                        <label>Document Serial Number:</label>
+                        <input type="text" id="documentSerialNumber" readonly>
+                    </div>
+                    <div class="header-field">
+                        <label>Date:</label>
+                        <input type="date" id="documentDate">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Details Section -->
+            <div class="work-details-section">
+                <h3>📋 Work Details</h3>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Person in Charge:</label>
+                        <input type="text" id="personInCharge" placeholder="Full name and ID number">
                     </div>
                     <div class="form-group">
-                        <label>Risk Level:</label>
-                        <select id="weeklyRiskLevel">
-                            <option value="">Select Risk Level</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
+                        <label>Expected Work:</label>
+                        <textarea id="expectedWork" rows="2" placeholder="Brief description of the task"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Safety Measures:</label>
-                        <textarea id="weeklySafetyMeasures" rows="3" placeholder="List safety measures and precautions to be taken..."></textarea>
+                        <label>Activities to be Performed:</label>
+                        <textarea id="activitiesToPerform" rows="2" placeholder="Detailed task breakdown"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>PPE Required:</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" id="weeklyPPE1"> Hard Hat</label>
-                            <label><input type="checkbox" id="weeklyPPE2"> Safety Glasses</label>
-                            <label><input type="checkbox" id="weeklyPPE3"> Insulated Gloves</label>
-                            <label><input type="checkbox" id="weeklyPPE4"> Arc Flash Suit</label>
-                            <label><input type="checkbox" id="weeklyPPE5"> Safety Boots</label>
+                        <label>SOP Reference:</label>
+                        <input type="text" id="sopReference" placeholder="Standard Operating Procedure ID">
+                    </div>
+                    <div class="form-group">
+                        <label>JHA Reference:</label>
+                        <input type="text" id="jhaReference" placeholder="Job Hazard Analysis ID">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="emergency-contacts">
+                <h3>📞 Emergency Contacts</h3>
+                <div class="contacts-grid">
+                    <div class="contact-group">
+                        <label>Safety Department Contact:</label>
+                        <input type="text" id="safetyContactName" placeholder="Name">
+                        <input type="tel" id="safetyContactPhone" placeholder="Phone Number">
+                    </div>
+                    <div class="contact-group">
+                        <label>Emergency Contact:</label>
+                        <input type="text" id="emergencyContactName" placeholder="Name">
+                        <input type="tel" id="emergencyContactPhone" placeholder="Phone Number">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Categories Tabs -->
+            <div class="risk-categories">
+                <h3>⚠️ Risk & Hazard Identification</h3>
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="showRiskTab('lifting')">🏗️ LIFTING LOADS</button>
+                    <button class="tab-btn" onclick="showRiskTab('hotwork')">🔥 HOT WORK</button>
+                    <button class="tab-btn" onclick="showRiskTab('energy')">⚡ ENERGY ISOLATION</button>
+                    <button class="tab-btn" onclick="showRiskTab('heights')">🧗 WORKING AT HEIGHTS</button>
+                </div>
+
+                <!-- Lifting Loads Tab -->
+                <div class="tab-content active" id="lifting-tab">
+                    <div class="risk-checklist">
+                        <h4>🏗️ Lifting Loads Safety Checklist</h4>
+                        <div class="checklist-items">
+                            <div class="checklist-item">
+                                <span class="item-text">Person licensed to practice</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_licensed', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_licensed', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_licensed_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Valid lifting permit</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_permit', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_permit', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_permit_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Barricades in place</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_barricades', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_barricades', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_barricades_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Spotters assigned</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_spotters', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_spotters', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_spotters_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Equipment inspection checklist</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_inspection', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_inspection', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_inspection_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">No person under suspended loads</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('lifting_clear', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('lifting_clear', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="lifting_clear_notes" placeholder="Notes...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hot Work Tab -->
+                <div class="tab-content" id="hotwork-tab">
+                    <div class="risk-checklist">
+                        <h4>🔥 Hot Work Safety Checklist</h4>
+                        <div class="checklist-items">
+                            <div class="checklist-item">
+                                <span class="item-text">Hot work license</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_license', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_license', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_license_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Hot work permit</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_permit', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_permit', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_permit_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Fire suppression system active</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_fire_suppression', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_fire_suppression', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_fire_suppression_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Combustibles identified within 12m</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_combustibles', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_combustibles', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_combustibles_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Barricades placed</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_barricades', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_barricades', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_barricades_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Approved equipment only</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('hotwork_equipment', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('hotwork_equipment', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="hotwork_equipment_notes" placeholder="Notes...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Energy Isolation Tab -->
+                <div class="tab-content" id="energy-tab">
+                    <div class="risk-checklist">
+                        <h4>⚡ Energy Isolation Safety Checklist</h4>
+                        <div class="checklist-items">
+                            <div class="checklist-item">
+                                <span class="item-text">Isolation license</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('energy_license', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('energy_license', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="energy_license_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Approved personal lock used</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('energy_lock', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('energy_lock', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="energy_lock_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Equipment inspection checklist</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('energy_inspection', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('energy_inspection', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="energy_inspection_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Energy level testing completed</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('energy_testing', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('energy_testing', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="energy_testing_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Supervisor notified before/after</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('energy_supervisor', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('energy_supervisor', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="energy_supervisor_notes" placeholder="Notes...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Working at Heights Tab -->
+                <div class="tab-content" id="heights-tab">
+                    <div class="risk-checklist">
+                        <h4>🧗 Working at Heights Safety Checklist</h4>
+                        <div class="checklist-items">
+                            <div class="checklist-item">
+                                <span class="item-text">License to practice</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_license', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_license', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_license_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Permit obtained</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_permit', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_permit', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_permit_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Fall distance >1.5m</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_fall_distance', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_fall_distance', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_fall_distance_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Working within 2m of the edge</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_edge_distance', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_edge_distance', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_edge_distance_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Harness fit for purpose</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_harness_fit', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_harness_fit', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_harness_fit_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Harness inspection checklist</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_harness_inspection', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_harness_inspection', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_harness_inspection_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Anchor points verified</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_anchor_points', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_anchor_points', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_anchor_points_notes" placeholder="Notes...">
+                            </div>
+                            <div class="checklist-item">
+                                <span class="item-text">Lifelines installed by a competent person</span>
+                                <div class="status-toggle">
+                                    <button class="status-btn go" onclick="setChecklistStatus('heights_lifelines', 'go')">🟢 GO</button>
+                                    <button class="status-btn no-go" onclick="setChecklistStatus('heights_lifelines', 'no-go')">🔴 NO GO</button>
+                                </div>
+                                <input type="text" class="item-notes" id="heights_lifelines_notes" placeholder="Notes...">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Step-by-Step Work Plan -->
+            <div class="work-plan-section">
+                <h3>🧭 Step-by-Step Work Plan</h3>
+                <div class="work-phases">
+                    <div class="phase">
+                        <h4>1. Preparation Phase</h4>
+                        <textarea id="preparationPhase" rows="3" placeholder="Equipment readiness, personnel briefing..."></textarea>
+                    </div>
+                    <div class="phase">
+                        <h4>2. Execution Phase</h4>
+                        <textarea id="executionPhase" rows="3" placeholder="Task-by-task breakdown, safety checkpoints..."></textarea>
+                    </div>
+                    <div class="phase">
+                        <h4>3. Completion Phase</h4>
+                        <textarea id="completionPhase" rows="3" placeholder="Final inspection, debrief and sign-off..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Signature -->
+            <div class="signature-section">
+                <h3>✍️ Digital Sign-Off</h3>
+                <div class="signature-container">
+                    <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                    <div class="signature-controls">
+                        <button type="button" onclick="clearSignature()" class="btn btn-secondary">🗑️ Clear Signature</button>
+                    </div>
+                </div>
+                <div class="signature-info">
+                    <input type="text" id="signatureName" placeholder="Print Name">
+                    <input type="date" id="signatureDate">
+                </div>
+            </div>
+
             <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveRiskAssessment()">💾 Save Draft</button>
                 <button type="button" class="btn btn-success" onclick="completeWeeklyRiskAssessment()">✅ Complete Assessment</button>
                 <button type="button" class="btn btn-secondary" onclick="closeWeeklyRiskAssessment()">❌ Cancel</button>
             </div>
