@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "43168247130",
+    "project_id": "winderlogbook",
+    "storage_bucket": "winderlogbook.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:43168247130:android:1755952471f99d6d52d763",
+        "android_client_info": {
+          "package_name": "com.winderlogbook.gradle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVg7BnlYstmcJJpSGXBZfF4ZVU7YH1YZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

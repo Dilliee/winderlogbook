@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Debug - Raw Data Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .data-output { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        pre { white-space: pre-wrap; word-break: break-all; }
+        button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .collection-name { font-weight: bold; color: #333; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Firestore Debug - Raw Data Viewer</h1>
+        <p>This page shows the actual data in your Firestore database.</p>
+
+        <div class="section">
+            <h2>Connection Status</h2>
+            <div id="connectionStatus">Connecting...</div>
+        </div>
+
+        <div class="section">
+            <h2>Actions</h2>
+            <button onclick="loadAllData()">🔄 Refresh All Data</button>
+            <button onclick="clearDisplay()">🗑️ Clear Display</button>
+            <button onclick="testWrite()">✍️ Test Write</button>
+        </div>
+
+        <div class="section">
+            <h2>📊 Trip Counters Collection</h2>
+            <div class="collection-name">Collection: trip_counters</div>
+            <div id="tripCountersData" class="data-output">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Logbook Entries Collection</h2>
+            <div class="collection-name">Collection: logbook_entries</div>
+            <div id="logbookData" class="data-output">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Component Status Collection</h2>
+            <div class="collection-name">Collection: component_status</div>
+            <div id="componentData" class="data-output">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>🚨 Emergency Logs Collection</h2>
+            <div class="collection-name">Collection: emergency_logs</div>
+            <div id="emergencyData" class="data-output">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>📄 Generated Reports Collection</h2>
+            <div class="collection-name">Collection: generated_reports</div>
+            <div id="reportsData" class="data-output">Loading...</div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 All Collections Summary</h2>
+            <div id="summaryData" class="data-output">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBddHvEKKYdIcc5IkA0Ut4PFiTg_y-I2ts",
+            authDomain: "winderlogbook.firebaseapp.com",
+            projectId: "winderlogbook",
+            storageBucket: "winderlogbook.firebasestorage.app",
+            messagingSenderId: "43168247130",
+            appId: "1:43168247130:web:abf0674e0a112c6552d763",
+            measurementId: "G-LRJ8Y3L6VL"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        console.log('🔥 Firebase initialized');
+
+        // Make functions global
+        window.loadAllData = loadAllData;
+        window.clearDisplay = clearDisplay;
+        window.testWrite = testWrite;
+
+        async function loadAllData() {
+            console.log('🔄 Loading all data...');
+            document.getElementById('connectionStatus').innerHTML = '<span class="info">Loading data from Firestore...</span>';
+
+            const collections = ['trip_counters', 'logbook_entries', 'component_status', 'emergency_logs', 'generated_reports'];
+            let totalDocuments = 0;
+
+            for (const collectionName of collections) {
+                try {
+                    console.log(`📂 Loading ${collectionName}...`);
+                    const q = query(collection(db, collectionName), orderBy('timestamp', 'desc'), limit(20));
+                    const snapshot = await getDocs(q);
+                    
+                    const docs = [];
+                    snapshot.forEach(doc => {
+                        docs.push({
+                            id: doc.id,
+                            data: doc.data()
+                        });
+                    });
+
+                    totalDocuments += docs.length;
+                    
+                    const elementId = getElementIdForCollection(collectionName);
+                    const element = document.getElementById(elementId);
+                    
+                    if (docs.length === 0) {
+                        element.innerHTML = '<span class="error">❌ No documents found in this collection</span>';
+                    } else {
+                        element.innerHTML = `<span class="success">✅ Found ${docs.length} documents:</span>\n${JSON.stringify(docs, null, 2)}`;
+                    }
+                    
+                    console.log(`📊 ${collectionName}: ${docs.length} documents`);
+                } catch (error) {
+                    console.error(`❌ Error loading ${collectionName}:`, error);
+                    const elementId = getElementIdForCollection(collectionName);
+                    document.getElementById(elementId).innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+                }
+            }
+
+            // Update summary
+            document.getElementById('summaryData').innerHTML = `
+                <span class="success">✅ Total documents found: ${totalDocuments}</span><br>
+                <strong>Collections checked:</strong> ${collections.join(', ')}<br>
+                <strong>Last updated:</strong> ${new Date().toLocaleString()}
+            `;
+
+            document.getElementById('connectionStatus').innerHTML = '<span class="success">✅ Connected to Firestore</span>';
+        }
+
+        function getElementIdForCollection(collectionName) {
+            const mapping = {
+                'trip_counters': 'tripCountersData',
+                'logbook_entries': 'logbookData',
+                'component_status': 'componentData',
+                'emergency_logs': 'emergencyData',
+                'generated_reports': 'reportsData'
+            };
+            return mapping[collectionName] || 'summaryData';
+        }
+
+        function clearDisplay() {
+            const elements = ['tripCountersData', 'logbookData', 'componentData', 'emergencyData', 'reportsData', 'summaryData'];
+            elements.forEach(id => {
+                document.getElementById(id).innerHTML = 'Cleared.';
+            });
+        }
+
+        async function testWrite() {
+            try {
+                console.log('✍️ Testing write to Firestore...');
+                document.getElementById('connectionStatus').innerHTML = '<span class="info">Testing write...</span>';
+                
+                const testData = {
+                    entryType: 'debug_test',
+                    message: 'Debug test from web dashboard',
+                    timestamp: Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    user: 'Debug User',
+                    shift: 'Debug Test'
+                };
+
+                await addDoc(collection(db, 'logbook_entries'), testData);
+                
+                document.getElementById('connectionStatus').innerHTML = '<span class="success">✅ Test write successful!</span>';
+                console.log('✅ Test write successful');
+                
+                // Reload data to show the new entry
+                setTimeout(loadAllData, 1000);
+            } catch (error) {
+                console.error('❌ Test write failed:', error);
+                document.getElementById('connectionStatus').innerHTML = `<span class="error">❌ Test write failed: ${error.message}</span>`;
+            }
+        }
+
+        // Auto-load data on page load
+        loadAllData();
+    </script>
+</body>
+</html>

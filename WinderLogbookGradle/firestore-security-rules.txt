@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access for testing (change for production)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Production rules (uncomment and customize for production use):
+    /*
+    // Logbook entries - drivers can write, supervisors can read
+    match /logbook_entries/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['driver', 'supervisor', 'admin'];
+    }
+    
+    // Trip counters - real-time updates
+    match /trip_counters/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['driver', 'supervisor', 'admin'];
+    }
+    
+    // Component status - equipment monitoring
+    match /component_status/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['driver', 'technician', 'supervisor', 'admin'];
+    }
+    
+    // Emergency logs - high priority access
+    match /emergency_logs/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Biometric signatures - audit trail
+    match /biometric_signatures/{document} {
+      allow read: if request.auth != null && 
+        request.auth.token.role in ['supervisor', 'admin'];
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['driver', 'supervisor', 'admin'];
+    }
+    
+    // Shifts - shift management
+    match /shifts/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['driver', 'supervisor', 'admin'];
+    }
+    
+    // Maintenance records
+    match /maintenance_records/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.token.role in ['technician', 'supervisor', 'admin'];
+    }
+    
+    // Users collection - admin only
+    match /users/{document} {
+      allow read, write: if request.auth != null && 
+        request.auth.token.role == 'admin';
+    }
+    */
+  }
+}
+
+// Notes for production:
+// 1. Replace 'if true' with proper authentication checks
+// 2. Add role-based access control using custom claims
+// 3. Implement data validation rules
+// 4. Add rate limiting for sensitive operations

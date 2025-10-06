@@ -1,0 +1,53 @@
+# Build artifacts
+**/build/
+**/target/
+**/dist/
+**/out/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Android Studio
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Local configuration files
+local.properties
+keystore.properties
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Backup files
+*.bak
+*.backup

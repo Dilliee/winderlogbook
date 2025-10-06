@@ -1,0 +1,2262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Winding Engine Driver Logbook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F5F5F5;
+            color: #333333;
+            line-height: 1.4;
+            font-size: 14px;
+            padding-bottom: 70px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* ==================== BIOMETRIC AUTHENTICATION STYLES ==================== */
+        
+        .biometric-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+
+        .biometric-overlay.hidden {
+            display: none;
+        }
+
+        .biometric-modal {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .biometric-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .biometric-modal h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .biometric-modal p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .biometric-status {
+            background: #F8F9FA;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .biometric-status .status-indicator {
+            font-size: 1.2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        .biometric-status.available .status-indicator {
+            animation: none;
+        }
+
+        .biometric-status.error .status-indicator {
+            animation: none;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            font-size: 0.9rem;
+            color: #555;
+            flex: 1;
+            text-align: left;
+        }
+
+        .biometric-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .biometric-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .biometric-btn.primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .biometric-btn.primary:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-2px);
+        }
+
+        .biometric-btn.primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .biometric-btn.secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+
+        .biometric-btn.secondary:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .btn-icon {
+            font-size: 1.1rem;
+        }
+
+        .auth-info {
+            background: #F8F9FA;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .auth-info > div {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .auth-info > div:last-child {
+            margin-bottom: 0;
+        }
+
+        .auth-info strong {
+            color: #333;
+            margin-right: 8px;
+        }
+
+        .auth-info span {
+            color: #666;
+        }
+
+        .auth-success {
+            animation: successPulse 0.6s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* ==================== LOGBOOK STYLES ==================== */
+
+        .logbook-header {
+            background: linear-gradient(135deg, #333333, #4682B4);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .logbook-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logbook-title h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .connection-status {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-indicator {
+            margin-right: 5px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .logbook-info-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-field label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .info-field input {
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+
+        .shift-selection {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .shift-selection label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .shift-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .shift-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .shift-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .shift-btn.active {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border-color: white;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #333333, #4682B4);
+            padding: 8px 0;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 0 15px;
+        }
+
+        .nav-btn {
+            padding: 10px 8px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.9);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn .nav-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-btn .nav-text {
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+        }
+
+
+        /* Page Content */
+        .page-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4682B4;
+        }
+
+        /* Duties Checklist */
+        .duties-checklist {
+            display: grid;
+            gap: 20px;
+        }
+
+        .duty-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+        }
+
+        .duty-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .duty-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+
+        .duty-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        .duty-item:hover {
+            background: rgba(70, 130, 180, 0.1);
+        }
+
+        .duty-item.highlighted {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .duty-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .duty-item label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            text-align: center;
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #4682B4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #36648B;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #4CAF50;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-warning {
+            background: #FF9800;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-danger {
+            background: #F44336;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        /* New Logbook Styles for Page 1 */
+        .logbook-header-section {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+        }
+
+        .header-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-collapse: collapse;
+        }
+
+        .header-cell {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .header-cell label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .header-cell input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 14px;
+            padding: 2px;
+        }
+
+        .shift-columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .shift-column {
+            border-right: 1px solid #333;
+            padding: 0;
+        }
+
+        .shift-column:last-child {
+            border-right: none;
+        }
+
+        .shift-header {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .time-fields {
+            padding: 10px;
+        }
+
+        .time-field {
+            margin-bottom: 8px;
+        }
+
+        .time-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .time-field input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .trip-fields {
+            padding: 10px;
+            border-top: 1px solid #333;
+            background: #f8f9fa;
+        }
+
+        .trip-field {
+            margin-bottom: 8px;
+        }
+
+        .trip-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #555;
+        }
+
+        .trip-field input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .number-scroller {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .scroller-btn {
+            background: #f8f9fa;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #495057;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        .scroller-btn:hover {
+            background: #e9ecef;
+        }
+
+        .scroller-btn:active {
+            background: #dee2e6;
+        }
+
+        .scroller-btn.minus {
+            border-right: 1px solid #ccc;
+        }
+
+        .scroller-btn.plus {
+            border-left: 1px solid #ccc;
+        }
+
+        .number-scroller input {
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 4px;
+            width: 50px;
+            background: transparent;
+            outline: none;
+        }
+
+        .number-scroller input::-webkit-outer-spin-button,
+        .number-scroller input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .number-scroller input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Weekly Workflow Styles */
+        .weekly-workflow {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .workflow-step {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .workflow-step h6 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-weight: bold;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Risk Assessment Form */
+        .risk-form-section h4 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+        }
+
+        /* Electrical Checklist Styles */
+        .electrical-checklist .modal-content {
+            max-width: 98%;
+            max-height: 90vh;
+            margin: 2% auto;
+        }
+
+        .electrical-checklist .modal-body {
+            padding: 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .status-legend {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .status-legend h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .legend-item {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .legend-item.green {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .legend-item.yellow {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .legend-item.red {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .checklist-section {
+            margin-bottom: 20px;
+        }
+
+        .checklist-section h4 {
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            margin: 0 0 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .checklist-table {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+
+        .checklist-header {
+            display: grid;
+            grid-template-columns: 2fr 100px 1.5fr;
+            background: #f8f9fa;
+            padding: 8px;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
+            font-size: 11px;
+        }
+
+        .checklist-row {
+            display: grid;
+            grid-template-columns: 2fr 100px 1.5fr;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checklist-row:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-row span {
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+        }
+
+        .status-btn {
+            border: none;
+            background: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            min-width: 28px;
+            height: 28px;
+        }
+
+        .status-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .status-btn.selected {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.2);
+        }
+
+        .checklist-row input {
+            padding: 4px 6px;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            font-size: 10px;
+            width: 100%;
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .electrical-checklist .modal-content {
+                max-width: 95%;
+                margin: 1% auto;
+            }
+            
+            .checklist-header,
+            .checklist-row {
+                grid-template-columns: 1.8fr 80px 1.2fr;
+                padding: 6px;
+                gap: 4px;
+            }
+            
+            .status-btn {
+                font-size: 14px;
+                min-width: 24px;
+                height: 24px;
+                padding: 2px;
+            }
+            
+            .checklist-row span {
+                font-size: 10px;
+            }
+            
+            .checklist-row input {
+                font-size: 9px;
+                padding: 3px 4px;
+            }
+        }
+
+        .personnel-section {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .personnel-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            border-collapse: collapse;
+        }
+
+        .personnel-checkbox {
+            border-right: 1px solid #333;
+            padding: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .personnel-checkbox:last-child {
+            border-right: none;
+        }
+
+        .personnel-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .personnel-checkbox label {
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .maintenance-options {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: #fff3cd;
+            padding: 15px;
+        }
+
+        .maintenance-header h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .maintenance-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+        }
+
+        .maintenance-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .maintenance-option label {
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+
+        .maintenance-sub-options {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+        }
+
+        .sub-options-header h5 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .sub-options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .sub-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .sub-option input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+        }
+
+        .sub-option label {
+            font-size: 11px;
+            font-weight: normal;
+            margin: 0;
+            color: #495057;
+        }
+
+        .risk-assessment-form {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .risk-form-header h4 {
+            margin: 0 0 5px 0;
+            color: #0c5460;
+            font-size: 16px;
+        }
+
+        .risk-form-header p {
+            margin: 0 0 15px 0;
+            color: #0c5460;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .risk-form-content {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #bee5eb;
+        }
+
+        .form-section {
+            margin-bottom: 15px;
+        }
+
+        .form-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-section textarea {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .form-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .risk-assessment-section {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: #d1ecf1;
+            padding: 15px;
+        }
+
+        .risk-assessment-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .risk-assessment-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+
+        .risk-assessment-checkbox label {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+            color: #0c5460;
+        }
+
+        .inspection-sections {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .inspection-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-collapse: collapse;
+        }
+
+        .inspection-dropdown {
+            border-right: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .inspection-dropdown:last-child {
+            border-right: none;
+        }
+
+        .inspection-dropdown label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .inspection-dropdown select {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .comments-section {
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+        }
+
+        .comments-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .comments-section textarea {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .end-shift-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .end-shift-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .end-shift-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .info-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .shift-buttons {
+                flex-direction: column;
+            }
+            
+            .duty-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+            
+            .navbar-container {
+                padding: 0 10px;
+            }
+            
+            .nav-btn .nav-text {
+                font-size: 9px;
+                max-width: 70px;
+            }
+            
+            .nav-btn .nav-icon {
+                font-size: 18px;
+            }
+
+            /* Mobile responsive for new logbook layout */
+            .header-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0;
+            }
+
+            .shift-columns {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .personnel-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0;
+            }
+
+            .maintenance-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+            }
+
+            .inspection-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .personnel-checkbox {
+                padding: 8px;
+            }
+
+            .inspection-dropdown {
+                padding: 8px;
+            }
+
+            .inspection-dropdown select {
+                font-size: 10px;
+            }
+
+            .header-cell label,
+            .time-field label,
+            .inspection-dropdown label {
+                font-size: 10px;
+            }
+
+            .end-shift-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-container {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 2px;
+                padding: 0 5px;
+            }
+            
+            .nav-btn {
+                padding: 8px 4px;
+            }
+            
+            .nav-btn .nav-text {
+                font-size: 8px;
+                max-width: 60px;
+            }
+            
+            .nav-btn .nav-icon {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Biometric Authentication Overlay -->
+    <div id="biometricOverlay" class="biometric-overlay">
+        <div class="biometric-modal">
+            <div class="biometric-icon">🔐</div>
+            <h2>Secure Access Required</h2>
+            <p>Use your fingerprint or face recognition to access the Winder Logbook</p>
+            
+            <div class="biometric-status" id="biometricStatus">
+                <div class="status-indicator" id="biometricIndicator">🔄</div>
+                <div class="status-message" id="biometricMessage">Checking biometric availability...</div>
+            </div>
+            
+            <div class="biometric-actions">
+                <button id="biometricAuthBtn" class="biometric-btn primary" onclick="startBiometricAuth()">
+                    <span class="btn-icon">👆</span>
+                    Authenticate
+                </button>
+                <button id="skipAuthBtn" class="biometric-btn secondary" onclick="skipAuthentication()">
+                    <span class="btn-icon">⏭️</span>
+                        Skip Authentication
+                </button>
+            </div>
+            
+            <div class="auth-info">
+                <div class="user-info">
+                    <strong>User:</strong> <span id="currentUserDisplay">Bays Draganovic</span>
+                </div>
+                <div class="shift-info">
+                    <strong>Shift:</strong> <span id="currentShiftDisplay">Day Shift</span>
+                </div>
+                <div class="session-info">
+                    <strong>Session:</strong> <span id="sessionStatus">Not authenticated</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Logbook Header -->
+        <div class="logbook-header">
+            <div class="logbook-title">
+                <h1>Digital Winding Engine Driver Logbook</h1>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator online" id="statusIndicator">🟢</span>
+                    <span id="statusText">Online</span>
+                    <span id="pendingCount" style="margin-left: 10px;"></span>
+                    <button id="logoutBtn" class="logout-btn" onclick="logout()" title="Logout and re-authenticate">
+                        🔓 Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Logbook Header Information -->
+            <div class="logbook-info-section">
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-field">
+                            <label>Mine name:</label>
+                            <input type="text" id="mineName" value="" placeholder="Enter mine name">
+                        </div>
+                        <div class="info-field">
+                            <label>Shaft:</label>
+                            <input type="text" id="shaftNumber" value="" placeholder="Enter shaft">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-field">
+                            <label>Compartments serf:</label>
+                            <input type="text" id="compartmentsSerf" value="" placeholder="Enter compartments">
+                        </div>
+                        <div class="info-field">
+                            <label>Company Number:</label>
+                            <input type="text" id="companyNumber" value="" placeholder="Enter company number">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-field">
+                            <label>Winding Engine Drivers' Name and Surname:</label>
+                            <input type="text" id="driverName" value="" placeholder="Enter driver name">
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-field">
+                            <label>Duration of Shift:</label>
+                            <input type="text" id="shiftDuration" value="8 hours" placeholder="Enter shift duration">
+                        </div>
+                        <div class="info-field">
+                            <label>Shift Starting time:</label>
+                            <input type="time" id="shiftStartTime" value="">
+                        </div>
+                        <div class="info-field">
+                            <label>Shift End Time:</label>
+                            <input type="time" id="shiftEndTime" value="">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shift Selection -->
+                <div class="shift-selection">
+                    <label><strong>Shift:</strong></label>
+                    <div class="shift-buttons">
+                        <button class="shift-btn active" data-shift="Morning" onclick="selectShift('Morning')">Morning</button>
+                        <button class="shift-btn" data-shift="Afternoon" onclick="selectShift('Afternoon')">Afternoon</button>
+                        <button class="shift-btn" data-shift="Night" onclick="selectShift('Night')">Night</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Page Content -->
+        <div class="page-content">
+            
+            <!-- Page 1: Shift Duties -->
+            <div class="page active" id="shift-duties-page">
+                <!-- Logbook Header -->
+                <div class="logbook-header-section">
+                    <div class="header-row">
+                        <div class="header-cell">
+                            <label>Shaft Name</label>
+                            <input type="text" id="shaftName" placeholder="Enter shaft name">
+                        </div>
+                        <div class="header-cell">
+                            <label>Winder Name</label>
+                            <input type="text" id="winderName" placeholder="Enter winder name">
+                        </div>
+                        <div class="header-cell">
+                            <label>Compartment Serve</label>
+                            <input type="text" id="compartmentServe" placeholder="Enter compartment">
+                        </div>
+                        <div class="header-cell">
+                            <label>Tel NR 001</label>
+                            <input type="text" id="telNumber" value="001" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shift Columns -->
+                <div class="shift-columns">
+                    <div class="shift-column">
+                        <div class="shift-header">Morning Shift</div>
+                        <div class="time-fields">
+                            <div class="time-field">
+                                <label>Time In</label>
+                                <input type="time" id="morningTimeIn">
+                            </div>
+                            <div class="time-field">
+                                <label>Time Out</label>
+                                <input type="time" id="morningTimeOut">
+                            </div>
+                        </div>
+                        <div class="trip-fields">
+                            <div class="trip-field">
+                                <label>Trips</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('morningTrips', -1)">−</button>
+                                    <input type="number" id="morningTrips" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('morningTrips', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Persons</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('morningPersons', -1)">−</button>
+                                    <input type="number" id="morningPersons" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('morningPersons', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Material</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('morningMaterial', -1)">−</button>
+                                    <input type="number" id="morningMaterial" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('morningMaterial', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Explosives</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('morningExplosives', -1)">−</button>
+                                    <input type="number" id="morningExplosives" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('morningExplosives', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Mineral</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('morningMineral', -1)">−</button>
+                                    <input type="number" id="morningMineral" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('morningMineral', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shift-column">
+                        <div class="shift-header">Afternoon Shift</div>
+                        <div class="time-fields">
+                            <div class="time-field">
+                                <label>Time In</label>
+                                <input type="time" id="afternoonTimeIn">
+                            </div>
+                            <div class="time-field">
+                                <label>Time Out</label>
+                                <input type="time" id="afternoonTimeOut">
+                            </div>
+                        </div>
+                        <div class="trip-fields">
+                            <div class="trip-field">
+                                <label>Trips</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('afternoonTrips', -1)">−</button>
+                                    <input type="number" id="afternoonTrips" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('afternoonTrips', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Persons</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('afternoonPersons', -1)">−</button>
+                                    <input type="number" id="afternoonPersons" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('afternoonPersons', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Material</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('afternoonMaterial', -1)">−</button>
+                                    <input type="number" id="afternoonMaterial" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('afternoonMaterial', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Explosives</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('afternoonExplosives', -1)">−</button>
+                                    <input type="number" id="afternoonExplosives" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('afternoonExplosives', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Mineral</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('afternoonMineral', -1)">−</button>
+                                    <input type="number" id="afternoonMineral" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('afternoonMineral', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shift-column">
+                        <div class="shift-header">Night Shift</div>
+                        <div class="time-fields">
+                            <div class="time-field">
+                                <label>Time In</label>
+                                <input type="time" id="nightTimeIn">
+                            </div>
+                            <div class="time-field">
+                                <label>Time Out</label>
+                                <input type="time" id="nightTimeOut">
+                            </div>
+                        </div>
+                        <div class="trip-fields">
+                            <div class="trip-field">
+                                <label>Trips</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('nightTrips', -1)">−</button>
+                                    <input type="number" id="nightTrips" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('nightTrips', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Persons</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('nightPersons', -1)">−</button>
+                                    <input type="number" id="nightPersons" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('nightPersons', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Material</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('nightMaterial', -1)">−</button>
+                                    <input type="number" id="nightMaterial" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('nightMaterial', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Explosives</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('nightExplosives', -1)">−</button>
+                                    <input type="number" id="nightExplosives" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('nightExplosives', 1)">+</button>
+                                </div>
+                            </div>
+                            <div class="trip-field">
+                                <label>Mineral</label>
+                                <div class="number-scroller">
+                                    <button type="button" class="scroller-btn minus" onclick="adjustCounter('nightMineral', -1)">−</button>
+                                    <input type="number" id="nightMineral" min="0" max="999" value="0" readonly>
+                                    <button type="button" class="scroller-btn plus" onclick="adjustCounter('nightMineral', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personnel Checkboxes -->
+                <div class="personnel-section">
+                    <div class="personnel-row">
+                        <div class="personnel-checkbox">
+                            <input type="checkbox" id="engineer">
+                            <label for="engineer">Engineer</label>
+                        </div>
+                        <div class="personnel-checkbox">
+                            <input type="checkbox" id="electrician">
+                            <label for="electrician">Electrician</label>
+                        </div>
+                        <div class="personnel-checkbox">
+                            <input type="checkbox" id="fitter">
+                            <label for="fitter">Fitter</label>
+                        </div>
+                        <div class="personnel-checkbox">
+                            <input type="checkbox" id="boilermaker">
+                            <label for="boilermaker">Boilermaker</label>
+                        </div>
+                        <div class="personnel-checkbox">
+                            <input type="checkbox" id="rigger">
+                            <label for="rigger">Rigger</label>
+                        </div>
+                        <div class="personnel-checkbox maintenance-checkbox">
+                            <input type="checkbox" id="maintenanceRequired" onchange="toggleMaintenanceOptions()">
+                            <label for="maintenanceRequired">Maintenance</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditional Maintenance Options -->
+                <div class="maintenance-options" id="maintenanceOptions" style="display: none;">
+                    <div class="maintenance-header">
+                        <h4>Maintenance Details</h4>
+                    </div>
+                    <div class="maintenance-grid">
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="dailyMaintenance" onchange="toggleMaintenanceSubOptions('daily')">
+                            <label for="dailyMaintenance">Daily Maintenance</label>
+                        </div>
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="weeklyMaintenance" onchange="toggleMaintenanceSubOptions('weekly')">
+                            <label for="weeklyMaintenance">Weekly Maintenance</label>
+                        </div>
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="monthlyMaintenance" onchange="toggleMaintenanceSubOptions('monthly')">
+                            <label for="monthlyMaintenance">Monthly Maintenance</label>
+                        </div>
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="quarterlyMaintenance" onchange="toggleMaintenanceSubOptions('quarterly')">
+                            <label for="quarterlyMaintenance">3 Monthly Maintenance</label>
+                        </div>
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="biannualMaintenance" onchange="toggleMaintenanceSubOptions('biannual')">
+                            <label for="biannualMaintenance">6 Monthly Maintenance</label>
+                        </div>
+                        <div class="maintenance-option">
+                            <input type="checkbox" id="yearlyMaintenance" onchange="toggleMaintenanceSubOptions('yearly')">
+                            <label for="yearlyMaintenance">Yearly Maintenance</label>
+                        </div>
+                    </div>
+
+                    <!-- Daily Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="dailyMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>Daily Maintenance Tasks</h5>
+                        </div>
+                        <div class="sub-options-grid">
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask1">
+                                <label for="dailyTask1">Task 1 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask2">
+                                <label for="dailyTask2">Task 2 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask3">
+                                <label for="dailyTask3">Task 3 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask4">
+                                <label for="dailyTask4">Task 4 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask5">
+                                <label for="dailyTask5">Task 5 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="dailyTask6">
+                                <label for="dailyTask6">Task 6 (Please specify)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="weeklyMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>⚡ Weekly Electrical Checklist</h5>
+                            <p>Two-step process: Risk Assessment → Electrical Inspection</p>
+                        </div>
+                        <div class="weekly-workflow">
+                            <div class="workflow-step" id="weeklyStep1">
+                                <h6>Step 1: Risk Assessment</h6>
+                                <button type="button" class="btn btn-primary" onclick="startWeeklyRiskAssessment()">
+                                    🛡️ Start Risk Assessment
+                                </button>
+                            </div>
+                            <div class="workflow-step" id="weeklyStep2" style="display: none;">
+                                <h6>Step 2: Electrical Checklist</h6>
+                                <button type="button" class="btn btn-success" onclick="startElectricalChecklist()">
+                                    ⚡ Begin Electrical Inspection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="monthlyMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>Monthly Maintenance Tasks</h5>
+                        </div>
+                        <div class="sub-options-grid">
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask1">
+                                <label for="monthlyTask1">Monthly Task 1 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask2">
+                                <label for="monthlyTask2">Monthly Task 2 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask3">
+                                <label for="monthlyTask3">Monthly Task 3 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask4">
+                                <label for="monthlyTask4">Monthly Task 4 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask5">
+                                <label for="monthlyTask5">Monthly Task 5 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="monthlyTask6">
+                                <label for="monthlyTask6">Monthly Task 6 (Please specify)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quarterly Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="quarterlyMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>3 Monthly Maintenance Tasks</h5>
+                        </div>
+                        <div class="sub-options-grid">
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask1">
+                                <label for="quarterlyTask1">3 Monthly Task 1 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask2">
+                                <label for="quarterlyTask2">3 Monthly Task 2 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask3">
+                                <label for="quarterlyTask3">3 Monthly Task 3 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask4">
+                                <label for="quarterlyTask4">3 Monthly Task 4 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask5">
+                                <label for="quarterlyTask5">3 Monthly Task 5 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="quarterlyTask6">
+                                <label for="quarterlyTask6">3 Monthly Task 6 (Please specify)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biannual Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="biannualMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>6 Monthly Maintenance Tasks</h5>
+                        </div>
+                        <div class="sub-options-grid">
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask1">
+                                <label for="biannualTask1">6 Monthly Task 1 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask2">
+                                <label for="biannualTask2">6 Monthly Task 2 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask3">
+                                <label for="biannualTask3">6 Monthly Task 3 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask4">
+                                <label for="biannualTask4">6 Monthly Task 4 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask5">
+                                <label for="biannualTask5">6 Monthly Task 5 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="biannualTask6">
+                                <label for="biannualTask6">6 Monthly Task 6 (Please specify)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Yearly Maintenance Sub-Options -->
+                    <div class="maintenance-sub-options" id="yearlyMaintenanceOptions" style="display: none;">
+                        <div class="sub-options-header">
+                            <h5>Yearly Maintenance Tasks</h5>
+                        </div>
+                        <div class="sub-options-grid">
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask1">
+                                <label for="yearlyTask1">Yearly Task 1 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask2">
+                                <label for="yearlyTask2">Yearly Task 2 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask3">
+                                <label for="yearlyTask3">Yearly Task 3 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask4">
+                                <label for="yearlyTask4">Yearly Task 4 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask5">
+                                <label for="yearlyTask5">Yearly Task 5 (Please specify)</label>
+                            </div>
+                            <div class="sub-option">
+                                <input type="checkbox" id="yearlyTask6">
+                                <label for="yearlyTask6">Yearly Task 6 (Please specify)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inspection Sections -->
+                <div class="inspection-sections">
+                    <div class="inspection-row">
+                        <div class="inspection-dropdown">
+                            <label>Morning Inspection</label>
+                            <select id="morningInspection">
+                                <option value="">Select inspection</option>
+                                <option value="pre-shift">Pre-shift Check</option>
+                                <option value="equipment">Equipment Inspection</option>
+                                <option value="safety">Safety Systems Check</option>
+                                <option value="rope">Rope Inspection</option>
+                            </select>
+                        </div>
+                        <div class="inspection-dropdown">
+                            <label>Afternoon Inspection</label>
+                            <select id="afternoonInspection">
+                                <option value="">Select inspection</option>
+                                <option value="mid-shift">Mid-shift Check</option>
+                                <option value="equipment">Equipment Inspection</option>
+                                <option value="safety">Safety Systems Check</option>
+                                <option value="handover">Handover Inspection</option>
+                            </select>
+                        </div>
+                        <div class="inspection-dropdown">
+                            <label>Night Inspection</label>
+                            <select id="nightInspection">
+                                <option value="">Select inspection</option>
+                                <option value="night-check">Night Check</option>
+                                <option value="equipment">Equipment Inspection</option>
+                                <option value="security">Security Check</option>
+                                <option value="end-shift">End of Shift Check</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Assessment -->
+                <div class="risk-assessment-section">
+                    <div class="risk-assessment-checkbox">
+                        <input type="checkbox" id="riskAssessment" onchange="toggleRiskAssessmentForm()">
+                        <label for="riskAssessment">Risk Assessment Completed</label>
+                    </div>
+                </div>
+
+                <!-- Risk Assessment Form -->
+                <div class="risk-assessment-form" id="riskAssessmentForm" style="display: none;">
+                    <div class="risk-form-header">
+                        <h4>🛡️ Risk Assessment Form</h4>
+                        <p>Please complete all sections of the risk assessment</p>
+                    </div>
+                    <div class="risk-form-content">
+                        <p><em>Please provide the risk assessment form details and I'll implement the complete form structure.</em></p>
+                        
+                        <!-- Placeholder form structure - will be replaced with your form -->
+                        <div class="form-section">
+                            <label>Risk Assessment Details:</label>
+                            <textarea id="riskAssessmentDetails" rows="4" placeholder="Risk assessment form will be implemented here based on your specifications..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-success" onclick="saveRiskAssessment()">💾 Save Assessment</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeRiskAssessmentForm()">❌ Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <label for="dailyComments">Comments</label>
+                    <textarea id="dailyComments" rows="4" placeholder="Enter shift comments, observations, or notes..."></textarea>
+                </div>
+
+                <!-- End of Shift Button -->
+                <div class="end-shift-section">
+                    <button class="end-shift-btn" onclick="endShift()">End of Shift</button>
+                </div>
+
+                <!-- Hidden for now -->
+                <div style="display: none;"></div>
+            </div>
+
+            <!-- Page 2: Winding Plant Control -->
+            <div class="page" id="winding-control-page">
+                <div class="page-header">
+                    <h2>Starting and taking control of a Winding Plant</h2>
+                </div>
+                
+                <!-- This will be populated with the detailed equipment checklist -->
+                <div class="equipment-checklist">
+                    <p>Equipment checklist will be loaded here based on your detailed specifications...</p>
+                </div>
+            </div>
+
+            <!-- Page 3: Logbook & Duties -->
+            <div class="page" id="logbook-duties-page">
+                <div class="page-header">
+                    <h2>Logbook and duties</h2>
+                </div>
+                
+                <!-- This will be populated with appointments and document sections -->
+                <div class="logbook-sections">
+                    <p>Logbook sections will be loaded here...</p>
+                </div>
+            </div>
+
+            <!-- Page 4: Examinations -->
+            <div class="page" id="examinations-page">
+                <div class="page-header">
+                    <h2>🔍 Examination of Winding Plant and Shaft</h2>
+                </div>
+                
+                <div class="examinations-content">
+                    <p>Examination schedule will be loaded here...</p>
+                </div>
+            </div>
+
+            <!-- Page 5: Reports -->
+            <div class="page" id="reports-page">
+                <div class="page-header">
+                    <h2>Reports & Analytics</h2>
+                </div>
+                
+                <!-- Keep existing reports functionality -->
+                <div class="reports-section">
+                    <p>Reports functionality will be maintained here...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="saveShiftData()">💾 Save Shift Data</button>
+            <button class="btn btn-warning" onclick="syncToFirestore()">🔄 Sync to Cloud</button>
+            <button class="btn" onclick="generateReport()">📊 Generate Report</button>
+            <button class="btn btn-danger" onclick="emergencyLog()">🚨 Emergency Log</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-navbar">
+        <div class="navbar-container">
+            <button class="nav-btn active" data-page="shift-duties" onclick="showPage('shift-duties')">
+                <div class="nav-icon">📋</div>
+                <div class="nav-text">Shift Duties</div>
+            </button>
+            <button class="nav-btn" data-page="winding-control" onclick="showPage('winding-control')">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-text">Plant Control</div>
+            </button>
+            <button class="nav-btn" data-page="logbook-duties" onclick="showPage('logbook-duties')">
+                <div class="nav-icon">📖</div>
+                <div class="nav-text">Logbook</div>
+            </button>
+            <button class="nav-btn" data-page="examinations" onclick="showPage('examinations')">
+                <div class="nav-icon">🔍</div>
+                <div class="nav-text">Examinations</div>
+            </button>
+            <button class="nav-btn" data-page="reports" onclick="showPage('reports')">
+                <div class="nav-icon">📊</div>
+                <div class="nav-text">Reports</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Weekly Risk Assessment Modal -->
+    <div class="modal" id="weeklyRiskAssessmentModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🛡️ Weekly Maintenance Risk Assessment</h3>
+                <span class="close" onclick="closeWeeklyRiskAssessment()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="risk-form-section">
+                    <h4>Risk Assessment Details</h4>
+                    <div class="form-group">
+                        <label>Hazard Identification:</label>
+                        <textarea id="weeklyHazardId" rows="3" placeholder="Identify potential hazards for electrical maintenance work..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Risk Level:</label>
+                        <select id="weeklyRiskLevel">
+                            <option value="">Select Risk Level</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Safety Measures:</label>
+                        <textarea id="weeklySafetyMeasures" rows="3" placeholder="List safety measures and precautions to be taken..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>PPE Required:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="weeklyPPE1"> Hard Hat</label>
+                            <label><input type="checkbox" id="weeklyPPE2"> Safety Glasses</label>
+                            <label><input type="checkbox" id="weeklyPPE3"> Insulated Gloves</label>
+                            <label><input type="checkbox" id="weeklyPPE4"> Arc Flash Suit</label>
+                            <label><input type="checkbox" id="weeklyPPE5"> Safety Boots</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="completeWeeklyRiskAssessment()">✅ Complete Assessment</button>
+                <button type="button" class="btn btn-secondary" onclick="closeWeeklyRiskAssessment()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Electrical Checklist Modal -->
+    <div class="modal" id="electricalChecklistModal" style="display: none;">
+        <div class="modal-content electrical-checklist">
+            <div class="modal-header">
+                <h3>⚡ Weekly Electrical Checklist</h3>
+                <span class="close" onclick="closeElectricalChecklist()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="status-legend">
+                    <h4>✅ Status Legend</h4>
+                    <div class="legend-items">
+                        <span class="legend-item green">🟢 Green - All in order</span>
+                        <span class="legend-item yellow">🟡 Yellow - Needs attention</span>
+                        <span class="legend-item red">🔴 Red - Urgent issue</span>
+                    </div>
+                </div>
+
+                <!-- RM6 Container Section -->
+                <div class="checklist-section">
+                    <h4>🧰 RM6 Container</h4>
+                    <div class="checklist-table">
+                        <div class="checklist-header">
+                            <span>Component/Task</span>
+                            <span>Status</span>
+                            <span>Notes</span>
+                        </div>
+                        <div class="checklist-row">
+                            <span>Isolate and LOCKOUT RM6 feeder breaker</span>
+                            <div class="status-buttons">
+                                <button class="status-btn green" onclick="setStatus('rm6_isolate', 'green')">🟢</button>
+                                <button class="status-btn yellow" onclick="setStatus('rm6_isolate', 'yellow')">🟡</button>
+                                <button class="status-btn red" onclick="setStatus('rm6_isolate', 'red')">🔴</button>
+                            </div>
+                            <input type="text" id="rm6_isolate_notes" placeholder="Notes...">
+                        </div>
+                        <div class="checklist-row">
+                            <span>Contactor contacts – discolouring</span>
+                            <div class="status-buttons">
+                                <button class="status-btn green" onclick="setStatus('rm6_contactor_disc', 'green')">🟢</button>
+                                <button class="status-btn yellow" onclick="setStatus('rm6_contactor_disc', 'yellow')">🟡</button>
+                                <button class="status-btn red" onclick="setStatus('rm6_contactor_disc', 'red')">🔴</button>
+                            </div>
+                            <input type="text" id="rm6_contactor_disc_notes" placeholder="Notes...">
+                        </div>
+                        <div class="checklist-row">
+                            <span>Battery voltage – charger ON (VDC)</span>
+                            <div class="status-buttons">
+                                <button class="status-btn green" onclick="setStatus('rm6_batt_on', 'green')">🟢</button>
+                                <button class="status-btn yellow" onclick="setStatus('rm6_batt_on', 'yellow')">🟡</button>
+                                <button class="status-btn red" onclick="setStatus('rm6_batt_on', 'red')">🔴</button>
+                            </div>
+                            <input type="text" id="rm6_batt_on_notes" placeholder="Voltage reading...">
+                        </div>
+                        <div class="checklist-row">
+                            <span>Hydraulic oil level</span>
+                            <div class="status-buttons">
+                                <button class="status-btn green" onclick="setStatus('hyd_oil', 'green')">🟢</button>
+                                <button class="status-btn yellow" onclick="setStatus('hyd_oil', 'yellow')">🟡</button>
+                                <button class="status-btn red" onclick="setStatus('hyd_oil', 'red')">🔴</button>
+                            </div>
+                            <input type="text" id="hyd_oil_notes" placeholder="Oil level...">
+                        </div>
+                        <div class="checklist-row">
+                            <span>ULT wire – manual test</span>
+                            <div class="status-buttons">
+                                <button class="status-btn green" onclick="setStatus('test_ult', 'green')">🟢</button>
+                                <button class="status-btn yellow" onclick="setStatus('test_ult', 'yellow')">🟡</button>
+                                <button class="status-btn red" onclick="setStatus('test_ult', 'red')">🔴</button>
+                            </div>
+                            <input type="text" id="test_ult_notes" placeholder="ULT test results...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="submitElectricalChecklist()">💾 Submit Checklist</button>
+                <button type="button" class="btn btn-secondary" onclick="closeElectricalChecklist()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

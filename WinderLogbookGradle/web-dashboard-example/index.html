@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winder Logbook - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-240px);
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            color: #ecf0f1;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #95a5a6;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-left-color: #3498db;
+        }
+
+        .nav-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            border-left-color: #3498db;
+        }
+
+        .nav-item i {
+            margin-right: 15px;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-item span {
+            font-size: 0.95rem;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 300px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1001;
+            transition: left 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .sidebar.collapsed + .sidebar-toggle {
+            left: 60px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 40px;
+        }
+
+        .content-header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        /* Content Pages */
+        .content-page {
+            display: none;
+        }
+
+        .content-page.active {
+            display: block;
+        }
+
+        /* Dashboard Overview */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            color: #3498db;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stat-description {
+            font-size: 0.85rem;
+            color: #95a5a6;
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table-header h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-green {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-yellow {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-red {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-blue {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        /* Forms */
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* Notifications */
+        .notification {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .notification.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-280px);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                left: 20px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Biometric Capture Styles */
+        .biometric-capture-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .biometric-info {
+            margin-bottom: 15px;
+        }
+
+        .biometric-info p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .biometric-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .biometric-controls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .biometric-status {
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* QR Code Generation Styles */
+        .qr-generation-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .qr-info {
+            margin-bottom: 15px;
+        }
+
+        .qr-info p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .qr-preview {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .qr-code-container {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .qr-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Machine Management Styles */
+        .machine-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .machine-status.online {
+            color: #28a745;
+        }
+
+        .machine-status.offline {
+            color: #dc3545;
+        }
+
+        .machine-status.maintenance {
+            color: #ffc107;
+        }
+
+        .qr-code-preview {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .qr-code-preview:hover {
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>⚙️ Winder Control</h2>
+            <p>Digital Logbook System</p>
+        </div>
+        
+        <div class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Dashboard</div>
+                <a class="nav-item active" data-page="overview">
+                    <i>📊</i>
+                    <span>Overview</span>
+                </a>
+                <a class="nav-item" data-page="operations">
+                    <i>⚡</i>
+                    <span>Live Operations</span>
+                </a>
+                <a class="nav-item" data-page="analytics">
+                    <i>📈</i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a class="nav-item" data-page="users">
+                    <i>👥</i>
+                    <span>User Management</span>
+                </a>
+                <a class="nav-item" data-page="machines">
+                    <i>⚙️</i>
+                    <span>Machine Management</span>
+                </a>
+                <a class="nav-item" data-page="roles">
+                    <i>🎭</i>
+                    <span>Roles & Permissions</span>
+                </a>
+                <a class="nav-item" data-page="shifts">
+                    <i>🕐</i>
+                    <span>Shift Management</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Reports</div>
+                <a class="nav-item" data-page="reports">
+                    <i>📄</i>
+                    <span>Generated Reports</span>
+                </a>
+                <a class="nav-item" data-page="checklists">
+                    <i>📋</i>
+                    <span>Checklists</span>
+                </a>
+                <a class="nav-item" data-page="maintenance">
+                    <i>🔧</i>
+                    <span>Maintenance Logs</span>
+                </a>
+                <a class="nav-item" data-page="notifications">
+                    <i>🚨</i>
+                    <span>Alerts & Notifications</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <a class="nav-item" data-page="settings">
+                    <i>⚙️</i>
+                    <span>Settings</span>
+                </a>
+                <a class="nav-item" data-page="logs">
+                    <i>📋</i>
+                    <span>System Logs</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Overview Page -->
+        <div class="content-page active" id="overview-page">
+            <div class="content-header">
+                <h1>Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshDashboard()">
+                        <i>🔄</i> Refresh Data
+                    </button>
+                    <button class="btn btn-success" onclick="exportData()">
+                        <i>📊</i> Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Operations Today</div>
+                        <div class="stat-icon">⚡</div>
+                    </div>
+                    <div class="stat-value" id="operationsToday">0</div>
+                    <div class="stat-description">Total trips completed</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Personnel Active</div>
+                        <div class="stat-icon">👥</div>
+                    </div>
+                    <div class="stat-value" id="personnelActive">0</div>
+                    <div class="stat-description">Currently on duty</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Material Moved</div>
+                        <div class="stat-icon">📦</div>
+                    </div>
+                    <div class="stat-value" id="materialMoved">0</div>
+                    <div class="stat-description">Tons processed today</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">System Status</div>
+                        <div class="stat-icon">🟢</div>
+                    </div>
+                    <div class="stat-value">Online</div>
+                    <div class="stat-description">All systems operational</div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Activities</h3>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentActivities">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #6c757d;">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- User Management Page -->
+        <div class="content-page" id="users-page">
+            <div class="content-header">
+                <h1>User Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i>➕</i> Add New User
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Creation Form -->
+            <div class="form-container">
+                <h3>Create New User</h3>
+                <form id="userForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userName">Full Name</label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">Email Address</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userRole">Primary Role</label>
+                            <select class="form-control" id="userRole" required>
+                                <option value="">Select Role</option>
+                                <option value="engineer">Engineer</option>
+                                <option value="electrician">Electrician</option>
+                                <option value="fitter">Fitter</option>
+                                <option value="boilermaker">Boilermaker</option>
+                                <option value="rigger">Rigger</option>
+                                <option value="supervisor">Supervisor</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userShift">Default Shift</label>
+                            <select class="form-control" id="userShift" required>
+                                <option value="">Select Shift</option>
+                                <option value="morning">Morning (6:00 - 14:00)</option>
+                                <option value="afternoon">Afternoon (14:00 - 22:00)</option>
+                                <option value="night">Night (22:00 - 6:00)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Biometric Capture Section -->
+                    <div class="form-group">
+                        <label>Biometric Authentication Setup</label>
+                        <div class="biometric-capture-section">
+                            <div class="biometric-info">
+                                <p>📱 Biometric data will be captured on the user's first mobile app login</p>
+                                <p>🔐 Supported: Fingerprint, Face ID, Voice Recognition</p>
+                            </div>
+                            <div class="biometric-controls">
+                                <label><input type="checkbox" id="enableFingerprint" checked> Enable Fingerprint</label>
+                                <label><input type="checkbox" id="enableFaceID" checked> Enable Face ID</label>
+                                <label><input type="checkbox" id="enableVoice"> Enable Voice Recognition</label>
+                            </div>
+                            <div class="biometric-status" id="biometricStatus">
+                                <span class="status-badge status-yellow">Pending Setup</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userPermissions">Additional Permissions</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
+                            <label><input type="checkbox" value="reports"> Generate Reports</label>
+                            <label><input type="checkbox" value="maintenance"> Maintenance Access</label>
+                            <label><input type="checkbox" value="admin"> Admin Functions</label>
+                            <label><input type="checkbox" value="analytics"> View Analytics</label>
+                            <label><input type="checkbox" value="qr_scanning"> QR Code Scanning</label>
+                            <label><input type="checkbox" value="machine_management"> Machine Management</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">Create User</button>
+                        <button type="reset" class="btn btn-warning">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Users List -->
+            <div class="table-container" style="margin-top: 30px;">
+                <div class="table-header">
+                    <h3>Existing Users</h3>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Shift</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Machine Management Page -->
+        <div class="content-page" id="machines-page">
+            <div class="content-header">
+                <h1>Machine Management</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showAddMachineModal()">
+                        <i>➕</i> Add New Machine
+                    </button>
+                </div>
+            </div>
+
+            <!-- Machine Creation Form -->
+            <div class="form-container">
+                <h3>Create New Winder Machine</h3>
+                <form id="machineForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="machineName">Machine Name</label>
+                            <input type="text" class="form-control" id="machineName" placeholder="e.g., Winder A1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="machineType">Machine Type</label>
+                            <select class="form-control" id="machineType" required>
+                                <option value="">Select Type</option>
+                                <option value="winder">Winder</option>
+                                <option value="hoist">Hoist</option>
+                                <option value="conveyor">Conveyor</option>
+                                <option value="crusher">Crusher</option>
+                                <option value="pump">Pump</option>
+                                <option value="compressor">Compressor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="machineLocation">Location</label>
+                            <input type="text" class="form-control" id="machineLocation" placeholder="e.g., Shaft 1, Level 2" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="machineSerialNumber">Serial Number</label>
+                            <input type="text" class="form-control" id="machineSerialNumber" placeholder="Machine serial number">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="machineManufacturer">Manufacturer</label>
+                            <input type="text" class="form-control" id="machineManufacturer" placeholder="e.g., Siemens, ABB">
+                        </div>
+                        <div class="form-group">
+                            <label for="machineModel">Model</label>
+                            <input type="text" class="form-control" id="machineModel" placeholder="Model number">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="machineDescription">Description</label>
+                        <textarea class="form-control" id="machineDescription" rows="3" placeholder="Additional machine details..."></textarea>
+                    </div>
+                    
+                    <!-- QR Code Generation Section -->
+                    <div class="form-group">
+                        <label>QR Code Generation</label>
+                        <div class="qr-generation-section">
+                            <div class="qr-info">
+                                <p>📱 A unique QR code will be automatically generated for this machine</p>
+                                <p>🔍 Workers can scan this code to access machine-specific checklists</p>
+                            </div>
+                            <div class="qr-preview" id="qrPreview" style="display: none;">
+                                <h5>Generated QR Code:</h5>
+                                <div class="qr-code-container">
+                                    <canvas id="qrCanvas" width="200" height="200"></canvas>
+                                </div>
+                                <div class="qr-actions">
+                                    <button type="button" class="btn btn-primary" onclick="downloadQRCode()">📥 Download QR</button>
+                                    <button type="button" class="btn btn-success" onclick="printQRCode()">🖨️ Print QR</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">Create Machine & Generate QR</button>
+                        <button type="reset" class="btn btn-warning">Clear Form</button>
+                        <button type="button" class="btn btn-primary" onclick="previewQRCode()">🔍 Preview QR Code</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Machines List -->
+            <div class="table-container" style="margin-top: 30px;">
+                <div class="table-header">
+                    <h3>Existing Machines</h3>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Machine Name</th>
+                            <th>Type</th>
+                            <th>Location</th>
+                            <th>Serial Number</th>
+                            <th>Status</th>
+                            <th>QR Code</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="machinesList">
+                        <!-- Machines will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Checklists Page -->
+        <div class="content-page" id="checklists-page">
+            <div class="content-header">
+                <h1>Inspection Checklists</h1>
+                <div class="header-actions">
+                    <select id="jobDescriptionFilter" class="form-control" style="width: auto; margin-right: 10px;">
+                        <option value="">All Job Descriptions</option>
+                        <option value="Engineer">Engineer</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Fitter">Fitter</option>
+                        <option value="Boilermaker">Boilermaker</option>
+                        <option value="Rigger">Rigger</option>
+                    </select>
+                    <select id="categoryFilter" class="form-control" style="width: auto; margin-right: 10px;">
+                        <option value="">All Categories</option>
+                        <option value="Daily Maintenance">Daily Maintenance</option>
+                        <option value="Weekly Maintenance">Weekly Maintenance</option>
+                        <option value="Monthly Maintenance">Monthly Maintenance</option>
+                        <option value="Electrical Inspection">Electrical Inspection</option>
+                        <option value="Safety Inspection">Safety Inspection</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="refreshChecklists()">
+                        <i>🔄</i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Checklist Stats -->
+            <div class="stats-grid" style="margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Checklists</div>
+                        <div class="stat-icon">📋</div>
+                    </div>
+                    <div class="stat-value" id="totalChecklists">0</div>
+                    <div class="stat-description">All time submissions</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Green Status</div>
+                        <div class="stat-icon">🟢</div>
+                    </div>
+                    <div class="stat-value" id="greenChecklists">0</div>
+                    <div class="stat-description">All systems normal</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Yellow Alerts</div>
+                        <div class="stat-icon">🟡</div>
+                    </div>
+                    <div class="stat-value" id="yellowChecklists">0</div>
+                    <div class="stat-description">Need attention</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Red Alerts</div>
+                        <div class="stat-icon">🔴</div>
+                    </div>
+                    <div class="stat-value" id="redChecklists">0</div>
+                    <div class="stat-description">Urgent issues</div>
+                </div>
+            </div>
+
+            <!-- Checklists Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Checklists</h3>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Inspector</th>
+                            <th>Job Description</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="checklistsList">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #6c757d;">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div class="content-page" id="reports-page">
+            <div class="content-header">
+                <h1>Generated Reports</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshReports()">
+                        <i>🔄</i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Available Reports</h3>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Report Name</th>
+                            <th>Type</th>
+                            <th>Generated</th>
+                            <th>Size</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsList">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #6c757d;">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notifications Page -->
+        <div class="content-page" id="notifications-page">
+            <div class="content-header">
+                <h1>Alerts & Notifications</h1>
+                <div class="header-actions">
+                    <button class="btn btn-warning" onclick="markAllRead()">
+                        <i>✓</i> Mark All Read
+                    </button>
+                </div>
+            </div>
+
+            <div id="notificationsList">
+                <!-- Notifications will be populated here -->
+            </div>
+        </div>
+
+        <!-- Other pages will be added here -->
+        <div class="content-page" id="operations-page">
+            <div class="content-header">
+                <h1>Live Operations</h1>
+            </div>
+            <p>Live operations monitoring will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="analytics-page">
+            <div class="content-header">
+                <h1>Analytics</h1>
+            </div>
+            <p>Analytics and charts will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="roles-page">
+            <div class="content-header">
+                <h1>Roles & Permissions</h1>
+            </div>
+            <p>Role management system will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="shifts-page">
+            <div class="content-header">
+                <h1>Shift Management</h1>
+            </div>
+            <p>Shift scheduling and management will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="maintenance-page">
+            <div class="content-header">
+                <h1>Maintenance Logs</h1>
+            </div>
+            <p>Maintenance history and logs will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="settings-page">
+            <div class="content-header">
+                <h1>System Settings</h1>
+            </div>
+            <p>System configuration and settings will be implemented here.</p>
+        </div>
+
+        <div class="content-page" id="logs-page">
+            <div class="content-header">
+                <h1>System Logs</h1>
+            </div>
+            <p>System logs and audit trail will be implemented here.</p>
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, getDocs, addDoc, onSnapshot, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBddHvEKKYdIcc5IkA0Ut4PFiTg_y-I2ts",
+            authDomain: "winderlogbook.firebaseapp.com",
+            projectId: "winderlogbook",
+            storageBucket: "winderlogbook.firebasestorage.app",
+            messagingSenderId: "43168247130",
+            appId: "1:43168247130:web:abf0674e0a112c6552d763",
+            measurementId: "G-LRJ8Y3L6VL"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available globally
+        window.db = db;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.onSnapshot = onSnapshot;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.limit = limit;
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+
+    <script>
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar toggle
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+            });
+
+            // Navigation items
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentPages = document.querySelectorAll('.content-page');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-page');
+                    
+                    // Update active nav item
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show target page
+                    contentPages.forEach(page => page.classList.remove('active'));
+                    const targetElement = document.getElementById(targetPage + '-page');
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                    }
+                });
+            });
+
+            // User form submission
+            const userForm = document.getElementById('userForm');
+            if (userForm) {
+                userForm.addEventListener('submit', handleUserCreation);
+            }
+        });
+
+        // Dashboard functions
+        async function initializeDashboard() {
+            console.log('🚀 Initializing dashboard...');
+            await loadDashboardData();
+            await loadUsers();
+            await loadReports();
+            await loadChecklists();
+            await loadNotifications();
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load trip counters
+                const tripCountersSnapshot = await getDocs(collection(db, 'trip_counters'));
+                let totalTrips = 0;
+                let totalPersonnel = 0;
+                let totalMaterial = 0;
+
+                tripCountersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    totalTrips += (data.trips || 0);
+                    totalPersonnel += (data.persons || 0);
+                    totalMaterial += (data.material || 0);
+                });
+
+                // Update dashboard stats
+                document.getElementById('operationsToday').textContent = totalTrips;
+                document.getElementById('personnelActive').textContent = totalPersonnel;
+                document.getElementById('materialMoved').textContent = totalMaterial;
+
+                // Load recent activities
+                await loadRecentActivities();
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        async function loadRecentActivities() {
+            try {
+                const activitiesQuery = query(
+                    collection(db, 'logbook_entries'),
+                    orderBy('timestamp', 'desc'),
+                    limit(10)
+                );
+                
+                const activitiesSnapshot = await getDocs(activitiesQuery);
+                const activitiesTable = document.getElementById('recentActivities');
+                
+                if (activitiesSnapshot.empty) {
+                    activitiesTable.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #6c757d;">No recent activities</td></tr>';
+                    return;
+                }
+
+                let activitiesHTML = '';
+                activitiesSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const timestamp = data.timestamp ? new Date(data.timestamp.seconds * 1000) : new Date();
+                    
+                    activitiesHTML += `
+                        <tr>
+                            <td>${timestamp.toLocaleTimeString()}</td>
+                            <td>${data.user || 'Unknown'}</td>
+                            <td>${data.type || 'Logbook Entry'}</td>
+                            <td><span class="status-badge status-blue">Completed</span></td>
+                        </tr>
+                    `;
+                });
+
+                activitiesTable.innerHTML = activitiesHTML;
+            } catch (error) {
+                console.error('Error loading recent activities:', error);
+                document.getElementById('recentActivities').innerHTML = 
+                    '<tr><td colspan="4" style="text-align: center; color: #dc3545;">Error loading activities</td></tr>';
+            }
+        }
+
+        async function loadUsers() {
+            // For now, show sample users - this will be connected to Firebase later
+            const usersList = document.getElementById('usersList');
+            const sampleUsers = [
+                { name: 'John Doe', email: 'john@winderlogbook.com', role: 'Engineer', shift: 'Morning', status: 'Active' },
+                { name: 'Jane Smith', email: 'jane@winderlogbook.com', role: 'Electrician', shift: 'Afternoon', status: 'Active' },
+                { name: 'Mike Johnson', email: 'mike@winderlogbook.com', role: 'Fitter', shift: 'Night', status: 'Inactive' }
+            ];
+
+            let usersHTML = '';
+            sampleUsers.forEach(user => {
+                const statusClass = user.status === 'Active' ? 'status-green' : 'status-red';
+                usersHTML += `
+                    <tr>
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td>${user.shift}</td>
+                        <td><span class="status-badge ${statusClass}">${user.status}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;">Edit</button>
+                            <button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">Disable</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            usersList.innerHTML = usersHTML;
+        }
+
+        async function loadReports() {
+            try {
+                const reportsSnapshot = await getDocs(collection(db, 'reports'));
+                const reportsList = document.getElementById('reportsList');
+                
+                if (reportsSnapshot.empty) {
+                    reportsList.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6c757d;">No reports available</td></tr>';
+                    return;
+                }
+
+                let reportsHTML = '';
+                reportsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const timestamp = data.timestamp ? new Date(data.timestamp.seconds * 1000) : new Date();
+                    
+                    reportsHTML += `
+                        <tr>
+                            <td>${data.fileName || 'Unknown Report'}</td>
+                            <td><span class="status-badge status-blue">${data.type || 'Daily'}</span></td>
+                            <td>${timestamp.toLocaleDateString()}</td>
+                            <td>-</td>
+                            <td>
+                                <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="viewReport('${doc.id}')">View</button>
+                                <button class="btn btn-success" style="padding: 5px 10px; font-size: 0.8rem;" onclick="downloadReport('${doc.id}')">Download</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                reportsList.innerHTML = reportsHTML;
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                document.getElementById('reportsList').innerHTML = 
+                    '<tr><td colspan="5" style="text-align: center; color: #dc3545;">Error loading reports</td></tr>';
+            }
+        }
+
+        async function loadChecklists() {
+            try {
+                const checklistsSnapshot = await getDocs(collection(db, 'checklists'));
+                const checklistsList = document.getElementById('checklistsList');
+                
+                if (checklistsSnapshot.empty) {
+                    checklistsList.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #6c757d;">No checklists available</td></tr>';
+                    return;
+                }
+
+                let checklistsData = [];
+                let totalChecklists = 0;
+                let greenCount = 0;
+                let yellowCount = 0;
+                let redCount = 0;
+
+                checklistsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    checklistsData.push({ id: doc.id, ...data });
+                    totalChecklists++;
+                    
+                    // Count by status
+                    switch (data.status) {
+                        case 'green': greenCount++; break;
+                        case 'yellow': yellowCount++; break;
+                        case 'red': redCount++; break;
+                    }
+                });
+
+                // Update stats
+                document.getElementById('totalChecklists').textContent = totalChecklists;
+                document.getElementById('greenChecklists').textContent = greenCount;
+                document.getElementById('yellowChecklists').textContent = yellowCount;
+                document.getElementById('redChecklists').textContent = redCount;
+
+                // Store data globally for filtering
+                window.checklistsData = checklistsData;
+                
+                // Display checklists
+                displayChecklists(checklistsData);
+                
+                // Setup filter listeners
+                setupChecklistFilters();
+
+            } catch (error) {
+                console.error('Error loading checklists:', error);
+                document.getElementById('checklistsList').innerHTML = 
+                    '<tr><td colspan="7" style="text-align: center; color: #dc3545;">Error loading checklists</td></tr>';
+            }
+        }
+
+        function displayChecklists(checklists) {
+            const checklistsList = document.getElementById('checklistsList');
+            
+            if (checklists.length === 0) {
+                checklistsList.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #6c757d;">No checklists match the current filters</td></tr>';
+                return;
+            }
+
+            let checklistsHTML = '';
+            checklists.forEach(checklist => {
+                const timestamp = checklist.createdAt ? new Date(checklist.createdAt.seconds * 1000) : new Date();
+                const statusClass = checklist.status === 'green' ? 'status-green' : 
+                                  checklist.status === 'yellow' ? 'status-yellow' : 'status-red';
+                
+                checklistsHTML += `
+                    <tr>
+                        <td>${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString()}</td>
+                        <td>${checklist.completedBy || 'Unknown'}</td>
+                        <td>${checklist.jobDescription || 'General'}</td>
+                        <td>${checklist.category || 'Maintenance'}</td>
+                        <td>${checklist.type || 'Checklist'}</td>
+                        <td><span class="status-badge ${statusClass}">${checklist.status || 'Unknown'}</span></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="viewChecklistDetails('${checklist.id}')">View</button>
+                            <button class="btn btn-success" style="padding: 5px 10px; font-size: 0.8rem;" onclick="exportChecklist('${checklist.id}')">Export</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            checklistsList.innerHTML = checklistsHTML;
+        }
+
+        function setupChecklistFilters() {
+            const jobFilter = document.getElementById('jobDescriptionFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            
+            if (jobFilter && categoryFilter) {
+                jobFilter.addEventListener('change', filterChecklists);
+                categoryFilter.addEventListener('change', filterChecklists);
+            }
+        }
+
+        function filterChecklists() {
+            const jobFilter = document.getElementById('jobDescriptionFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            if (!window.checklistsData) return;
+            
+            let filteredData = window.checklistsData;
+            
+            // Filter by job description
+            if (jobFilter) {
+                filteredData = filteredData.filter(checklist => 
+                    checklist.jobDescription === jobFilter
+                );
+            }
+            
+            // Filter by category
+            if (categoryFilter) {
+                filteredData = filteredData.filter(checklist => 
+                    checklist.category === categoryFilter
+                );
+            }
+            
+            displayChecklists(filteredData);
+        }
+
+        async function refreshChecklists() {
+            await loadChecklists();
+            showNotification('Checklists refreshed', 'success');
+        }
+
+        function viewChecklistDetails(checklistId) {
+            const checklist = window.checklistsData.find(c => c.id === checklistId);
+            if (checklist) {
+                // Create a modal or detailed view for the checklist
+                alert(`Checklist Details:\n\nInspector: ${checklist.completedBy}\nType: ${checklist.type}\nStatus: ${checklist.status}\nDate: ${new Date(checklist.createdAt.seconds * 1000).toLocaleString()}`);
+            }
+        }
+
+        function exportChecklist(checklistId) {
+            showNotification('Exporting checklist: ' + checklistId, 'success');
+        }
+
+        async function loadNotifications() {
+            try {
+                const notificationsSnapshot = await getDocs(collection(db, 'notifications'));
+                const notificationsList = document.getElementById('notificationsList');
+                
+                if (notificationsSnapshot.empty) {
+                    notificationsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 40px;">No notifications</div>';
+                    return;
+                }
+
+                let notificationsHTML = '';
+                notificationsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const timestamp = data.createdAt ? new Date(data.createdAt.seconds * 1000) : new Date();
+                    const alertClass = data.status === 'red' ? 'error' : (data.status === 'yellow' ? 'warning' : 'success');
+                    
+                    notificationsHTML += `
+                        <div class="notification ${alertClass}">
+                            <i>${data.status === 'red' ? '🔴' : (data.status === 'yellow' ? '🟡' : '🟢')}</i>
+                            <div style="flex: 1;">
+                                <strong>${data.componentName || 'System Alert'}</strong>
+                                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">${data.alertLevel || 'INFO'}: ${data.inspector || 'System'} - ${timestamp.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                notificationsList.innerHTML = notificationsHTML;
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationsList').innerHTML = 
+                    '<div style="text-align: center; color: #dc3545; padding: 40px;">Error loading notifications</div>';
+            }
+        }
+
+        // User management functions
+        async function handleUserCreation(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const userData = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                role: document.getElementById('userRole').value,
+                shift: document.getElementById('userShift').value,
+                permissions: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                createdAt: new Date(),
+                status: 'active'
+            };
+
+            try {
+                await addDoc(collection(db, 'users'), userData);
+                
+                // Show success notification
+                showNotification('User created successfully!', 'success');
+                
+                // Reset form
+                event.target.reset();
+                
+                // Reload users list
+                await loadUsers();
+                
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showNotification('Error creating user: ' + error.message, 'error');
+            }
+        }
+
+        // Utility functions
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i>${type === 'success' ? '✓' : (type === 'error' ? '✗' : '!')}</i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        async function refreshDashboard() {
+            showNotification('Refreshing dashboard data...', 'success');
+            await loadDashboardData();
+        }
+
+        async function refreshReports() {
+            await loadReports();
+            showNotification('Reports refreshed', 'success');
+        }
+
+        function exportData() {
+            showNotification('Export functionality will be implemented', 'warning');
+        }
+
+        function viewReport(reportId) {
+            showNotification('Opening report: ' + reportId, 'success');
+        }
+
+        function downloadReport(reportId) {
+            showNotification('Downloading report: ' + reportId, 'success');
+        }
+
+        function markAllRead() {
+            showNotification('All notifications marked as read', 'success');
+        }
+
+        // Mobile responsiveness
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+        });
+    </script>
+</body>
+</html>
