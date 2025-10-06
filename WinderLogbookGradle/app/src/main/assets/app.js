@@ -9,43 +9,283 @@ let tripCounters = {
     explosives: 0
 };
 
-// ==================== AUTHENTICATION (SIMPLIFIED) ====================
+// ==================== BIOMETRIC AUTHENTICATION SYSTEM ====================
 
-let isAuthenticated = true; // Always authenticated - no biometric required
+let isAuthenticated = false;
+let currentUserProfile = null;
 
+// Initialize Biometric Authentication
 function initializeBiometricAuth() {
-    // BIOMETRIC AUTHENTICATION REMOVED - Always authenticated
-    console.log('✅ Authentication system disabled - always authenticated');
-    updateAuthenticationUI();
+    console.log('🔐 Initializing biometric authentication system...');
+    
+    // Check if user is already authenticated
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    const storedProfile = localStorage.getItem('currentUserProfile');
+    
+    if (storedAuth === 'true' && storedProfile) {
+        isAuthenticated = true;
+        currentUserProfile = JSON.parse(storedProfile);
+        console.log('✅ User already authenticated:', currentUserProfile.name);
+        updateAuthenticationUI();
+        return;
+    }
+    
+    // Check biometric availability
+    if (typeof WinderLogbook !== 'undefined' && WinderLogbook.isBiometricAvailable) {
+        const available = WinderLogbook.isBiometricAvailable();
+        console.log('🔐 Biometric available:', available);
+        
+        if (available) {
+            showBiometricPrompt();
+        } else {
+            showFallbackLogin();
+        }
+    } else {
+        console.warn('⚠️ WinderLogbook interface not available - showing fallback login');
+        showFallbackLogin();
+    }
 }
 
-// BIOMETRIC FUNCTIONS REMOVED - No longer needed
+// Show Biometric Authentication Prompt
+function showBiometricPrompt() {
+    console.log('👆 Showing biometric authentication prompt...');
+    
+    if (typeof WinderLogbook !== 'undefined' && WinderLogbook.showBiometricPrompt) {
+        try {
+            WinderLogbook.showBiometricPrompt();
+        } catch (error) {
+            console.error('❌ Error showing biometric prompt:', error);
+            showFallbackLogin();
+        }
+    } else {
+        showFallbackLogin();
+    }
+}
 
-// BIOMETRIC AVAILABILITY CHECK REMOVED
+// Show Fallback Login (for testing/web mode)
+function showFallbackLogin() {
+    const overlay = document.createElement('div');
+    overlay.id = 'fallbackLoginOverlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+            <h2 style="margin-top: 0; color: #333;">🔐 Login Required</h2>
+            <p style="color: #666; margin-bottom: 20px;">Enter your credentials to access the Winder Logbook</p>
+            <input type="text" id="fallbackUsername" placeholder="Username or Employee ID" 
+                   style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+            <input type="password" id="fallbackPassword" placeholder="Password" 
+                   style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+            <button onclick="performFallbackLogin()" 
+                    style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                Login
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
 
-// ALL BIOMETRIC FUNCTIONS REMOVED - Authentication disabled
+// Perform Fallback Login
+function performFallbackLogin() {
+    const username = document.getElementById('fallbackUsername').value;
+    const password = document.getElementById('fallbackPassword').value;
+    
+    if (!username || !password) {
+        showToast('❌ Please enter username and password');
+        return;
+    }
+    
+    // Authenticate with backend
+    authenticateUser(username, password);
+}
+
+// Authenticate User (called from biometric or fallback)
+function authenticateUser(username, password) {
+    console.log('🔐 Authenticating user:', username);
+    
+    // Try to authenticate with Android interface first
+    if (typeof WinderLogbook !== 'undefined' && WinderLogbook.authenticateUser) {
+        try {
+            WinderLogbook.authenticateUser(username, password);
+            // Result will be handled by onBiometricAuthSuccess callback
+        } catch (error) {
+            console.error('❌ Authentication error:', error);
+            showToast('❌ Authentication failed. Please try again.');
+        }
+    } else {
+        // Fallback: Try to authenticate with stored users
+        authenticateWithStoredUsers(username, password);
+    }
+}
+
+// Authenticate with stored users (offline mode)
+function authenticateWithStoredUsers(username, password) {
+    const storedUsers = localStorage.getItem('syncedUsers');
+    
+    if (storedUsers) {
+        const users = JSON.parse(storedUsers);
+        const user = users.find(u => 
+            (u.username === username || u.employeeId === username) && u.password === password
+        );
+        
+        if (user) {
+            onBiometricAuthSuccess(JSON.stringify({
+                userId: user.userId,
+                name: user.name,
+                employeeId: user.employeeId,
+                jobDescription: user.jobDescription,
+                email: user.email,
+                department: user.department
+            }));
+        } else {
+            showToast('❌ Invalid credentials');
+            console.error('❌ User not found or invalid password');
+        }
+    } else {
+        showToast('❌ No users synced. Please sync from dashboard first.');
+    }
+}
+
+// Biometric Authentication Success Callback (called from Android)
+function onBiometricAuthSuccess(userProfileJson) {
+    console.log('✅ Biometric authentication successful');
+    
+    try {
+        currentUserProfile = JSON.parse(userProfileJson);
+        isAuthenticated = true;
+        
+        // Store authentication state
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('currentUserProfile', userProfileJson);
+        
+        // Update UI
+        updateAuthenticationUI();
+        
+        // Remove fallback login if exists
+        const fallbackOverlay = document.getElementById('fallbackLoginOverlay');
+        if (fallbackOverlay) {
+            fallbackOverlay.remove();
+        }
+        
+        showToast(`✅ Welcome, ${currentUserProfile.name}!`);
+        
+        console.log('👤 User profile loaded:', currentUserProfile);
+        
+    } catch (error) {
+        console.error('❌ Error processing user profile:', error);
+        showToast('❌ Error loading user profile');
+    }
+}
+
+// Biometric Authentication Failed Callback (called from Android)
+function onBiometricAuthFailed(errorMessage) {
+    console.error('❌ Biometric authentication failed:', errorMessage);
+    showToast('❌ Authentication failed: ' + errorMessage);
+    
+    // Show fallback login after failed biometric
+    setTimeout(() => {
+        showFallbackLogin();
+    }, 1000);
+}
 
 function updateAuthenticationUI() {
-    // Update session status - Always authenticated
+    if (!isAuthenticated || !currentUserProfile) {
+        console.warn('⚠️ User not authenticated or profile not loaded');
+        return;
+    }
+    
+    // Update session status
     const sessionStatusEl = document.getElementById('sessionStatus');
     if (sessionStatusEl) {
         sessionStatusEl.textContent = 'Authenticated ✅';
         sessionStatusEl.style.color = '#4CAF50';
     }
     
-    // Get current user and shift from native
-    if (typeof WinderLogbook !== 'undefined') {
-        const user = WinderLogbook.getCurrentUser();
-        const shift = WinderLogbook.getCurrentShift();
-        
-        const userEl = document.getElementById('currentUserDisplay');
-        const shiftEl = document.getElementById('currentShiftDisplay');
-        
-        if (userEl) userEl.textContent = user;
-        if (shiftEl) shiftEl.textContent = shift;
-        
-        currentUser = user;
-        currentShift = shift;
+    // Update user display
+    const userEl = document.getElementById('currentUserDisplay');
+    if (userEl) {
+        userEl.textContent = currentUserProfile.name || 'User';
+    }
+    
+    // Update current user global variable
+    currentUser = currentUserProfile.name;
+    
+    // Auto-fill job description if field exists
+    autoFillJobDescription();
+    
+    // Auto-fill employee ID if field exists
+    autoFillEmployeeId();
+    
+    // Update shift display from native if available
+    if (typeof WinderLogbook !== 'undefined' && WinderLogbook.getCurrentShift) {
+        try {
+            const shift = WinderLogbook.getCurrentShift();
+            const shiftEl = document.getElementById('currentShiftDisplay');
+            if (shiftEl) {
+                shiftEl.textContent = shift;
+            }
+            currentShift = shift;
+        } catch (error) {
+            console.error('Error getting current shift:', error);
+        }
+    }
+    
+    // Show main interface
+    const mainInterface = document.getElementById('mainInterface');
+    if (mainInterface) {
+        mainInterface.style.display = 'block';
+    }
+    
+    console.log('✅ Authentication UI updated for user:', currentUser);
+}
+
+// Auto-fill Job Description
+function autoFillJobDescription() {
+    if (!currentUserProfile || !currentUserProfile.jobDescription) {
+        return;
+    }
+    
+    const jobDescFields = [
+        'jobDescription',
+        'personInCharge', // For risk assessment
+        'completedBy'
+    ];
+    
+    jobDescFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.value) {
+            if (fieldId === 'personInCharge') {
+                field.value = `${currentUserProfile.name} (${currentUserProfile.employeeId}) - ${currentUserProfile.jobDescription}`;
+            } else if (fieldId === 'jobDescription') {
+                field.value = currentUserProfile.jobDescription;
+            }
+            console.log(`✅ Auto-filled ${fieldId}:`, field.value);
+        }
+    });
+}
+
+// Auto-fill Employee ID
+function autoFillEmployeeId() {
+    if (!currentUserProfile || !currentUserProfile.employeeId) {
+        return;
+    }
+    
+    const employeeIdField = document.getElementById('employeeId');
+    if (employeeIdField && !employeeIdField.value) {
+        employeeIdField.value = currentUserProfile.employeeId;
+        console.log('✅ Auto-filled employee ID:', currentUserProfile.employeeId);
     }
 }
 
@@ -104,19 +344,99 @@ function showToast(message) {
     }
 }
 
-// Callback function called from native Android code when user logs out
-function onLogout() {
-    console.log('🔓 User logged out');
-    // No logout required - always authenticated
+// Logout User
+function logout() {
+    console.log('🔓 Logging out user...');
+    
+    // Clear authentication state
+    isAuthenticated = false;
+    currentUserProfile = null;
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('currentUserProfile');
+    
+    // Clear UI
+    const mainInterface = document.getElementById('mainInterface');
+    if (mainInterface) {
+        mainInterface.style.display = 'none';
+    }
+    
     showToast('🔓 Logged out successfully');
+    
+    // Reinitialize authentication
+    setTimeout(() => {
+        initializeBiometricAuth();
+    }, 500);
 }
 
-function logout() {
-    if (typeof WinderLogbook !== 'undefined') {
-        WinderLogbook.logout();
+// Callback function called from native Android code when user logs out
+function onLogout() {
+    logout();
+}
+
+// Sync Users from Web Dashboard
+function syncUsersFromDashboard() {
+    console.log('🔄 Syncing users from web dashboard...');
+    
+    if (typeof WinderLogbook !== 'undefined' && WinderLogbook.syncUsers) {
+        try {
+            WinderLogbook.syncUsers();
+            showToast('🔄 Syncing users...');
+        } catch (error) {
+            console.error('❌ Error syncing users:', error);
+            showToast('❌ Error syncing users');
+        }
     } else {
-        onLogout();
+        showToast('⚠️ Sync not available in web mode');
     }
+}
+
+// Callback when users are synced (called from Android)
+function onUsersSynced(usersJson) {
+    console.log('✅ Users synced from dashboard');
+    
+    try {
+        const users = JSON.parse(usersJson);
+        localStorage.setItem('syncedUsers', usersJson);
+        localStorage.setItem('lastSyncTime', Date.now().toString());
+        
+        showToast(`✅ ${users.length} user(s) synced successfully`);
+        console.log(`📊 Synced ${users.length} users:`, users);
+        
+    } catch (error) {
+        console.error('❌ Error processing synced users:', error);
+        showToast('❌ Error processing synced users');
+    }
+}
+
+// Get Last Sync Time
+function getLastSyncTime() {
+    const lastSync = localStorage.getItem('lastSyncTime');
+    if (lastSync) {
+        const date = new Date(parseInt(lastSync));
+        return date.toLocaleString();
+    }
+    return 'Never';
+}
+
+// Check if user sync is needed
+function checkUserSyncStatus() {
+    const lastSync = localStorage.getItem('lastSyncTime');
+    
+    if (!lastSync) {
+        console.warn('⚠️ Users never synced');
+        return false;
+    }
+    
+    const lastSyncTime = parseInt(lastSync);
+    const now = Date.now();
+    const hoursSinceSync = (now - lastSyncTime) / (1000 * 60 * 60);
+    
+    if (hoursSinceSync > 24) {
+        console.warn('⚠️ User sync is outdated (> 24 hours)');
+        return false;
+    }
+    
+    return true;
 }
 
 // ==================== PAGE NAVIGATION ====================
