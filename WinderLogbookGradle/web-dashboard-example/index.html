@@ -1248,16 +1248,20 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
 
-            // Make Firebase available globally
+            // Make Firebase available globally with proper function binding
             window.db = db;
-            window.collection = collection;
+            window.collection = (db, collectionPath) => collection(db, collectionPath);
             window.getDocs = getDocs;
             window.addDoc = addDoc;
-            window.doc = doc;
+            window.doc = (db, collectionPath, docId) => doc(db, collectionPath, docId);
             window.updateDoc = updateDoc;
             window.deleteDoc = deleteDoc;
+            window.query = query;
+            window.where = where;
+            window.orderBy = orderBy;
             
             console.log('✅ Firebase v9 SDK initialized successfully');
+            console.log('✅ All Firestore functions available:', Object.keys(window).filter(k => typeof window[k] === 'function' && (k.includes('collection') || k.includes('Doc') || k.includes('query'))));
         } catch (error) {
             console.warn('⚠️ Firebase initialization failed, using localStorage mode:', error);
             // Set fallback values
@@ -1727,63 +1731,17 @@
                     }
                 }
                 
-                // Fallback to localStorage
-                const storedUsers = localStorage.getItem('winderLogbookUsers');
-                if (storedUsers) {
-                    users = JSON.parse(storedUsers);
-                    console.log(`📦 Loaded ${users.length} users from localStorage`);
-                } else {
-                    // Create demo users
-                    console.log('👥 Creating demo users...');
-                    users = [
-                        {
-                            userId: generateUserId(),
-                            employeeId: 'EMP001',
-                            name: 'John Doe',
-                            username: 'jdoe',
-                            password: 'password123',
-                            email: 'john.doe@lucara.com',
-                            phone: '+267 123 4567',
-                            jobDescription: 'Winder Driver',
-                            department: 'Operations',
-                            shift: 'Day',
-                            accessLevel: 'user',
-                            fingerprintData: 'demo_fingerprint_1',
-                            biometricEnrolled: true,
-                            status: 'active',
-                            createdAt: Date.now()
-                        },
-                        {
-                            userId: generateUserId(),
-                            employeeId: 'EMP002',
-                            name: 'Jane Smith',
-                            username: 'jsmith',
-                            password: 'password123',
-                            email: 'jane.smith@lucara.com',
-                            phone: '+267 234 5678',
-                            jobDescription: 'Electrician',
-                            department: 'Electrical',
-                            shift: 'Night',
-                            accessLevel: 'user',
-                            fingerprintData: 'demo_fingerprint_2',
-                            biometricEnrolled: true,
-                            status: 'active',
-                            createdAt: Date.now()
-                        }
-                    ];
-                    await saveUsersToStorage();
-                }
+                // No localStorage fallback - require Firestore
+                console.error('❌ No users found in Firestore');
+                showNotification('⚠️ No users found in cloud storage. Please create users.', 'warning');
+                users = [];
                 
             } catch (error) {
-                console.error('❌ Error loading users:', error);
-                showNotification('❌ Error loading users from Firestore', 'error');
+                console.error('❌ Error loading users from Firestore:', error);
+                showNotification('❌ Failed to load users from cloud storage. Please check your connection.', 'error');
                 
-                // Fallback to localStorage
-                const storedUsers = localStorage.getItem('winderLogbookUsers');
-                if (storedUsers) {
-                    users = JSON.parse(storedUsers);
-                    console.log(`📦 Fallback: Loaded ${users.length} users from localStorage`);
-                }
+                // No localStorage fallback - require cloud storage
+                users = [];
             }
             
             renderUsersTable();
@@ -1835,11 +1793,10 @@
                     console.log('✅ Users saved to Firestore successfully');
                     showNotification(`✅ ${users.length} users saved to Firestore`, 'success');
                 } else {
-                    console.warn('⚠️ Firestore not available, using localStorage only');
+                    console.error('❌ Firestore not available - CLOUD SYNC REQUIRED');
+                    showNotification('❌ Cloud storage not available. Please check your internet connection.', 'error');
+                    throw new Error('Firestore not available - cloud sync required');
                 }
-                
-                // Also save to localStorage as backup
-                localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
                 
                 // CRITICAL: Also sync to mobile app key
                 const syncData = users.map(u => ({
@@ -1860,25 +1817,11 @@
                 console.log('📱 Users also synced to mobile app key "syncedUsers":', syncData.length);
                 
             } catch (error) {
-                console.error('❌ Error saving users:', error);
-                showNotification('❌ Error saving users to Firestore', 'error');
+                console.error('❌ Error saving users to Firestore:', error);
+                showNotification('❌ Failed to save users to cloud storage. Please check your connection.', 'error');
                 
-                // Fallback to localStorage only
-                localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
-                localStorage.setItem('syncedUsers', JSON.stringify(users.map(u => ({
-                    userId: u.userId,
-                    employeeId: u.employeeId,
-                    name: u.name,
-                    username: u.username,
-                    password: u.password,
-                    email: u.email,
-                    jobDescription: u.jobDescription,
-                    department: u.department,
-                    shift: u.shift,
-                    accessLevel: u.accessLevel,
-                    fingerprintData: u.fingerprintData,
-                    biometricEnrolled: u.biometricEnrolled
-                }))));
+                // DO NOT use localStorage fallback - require cloud storage
+                throw error;
             }
             
             renderUsersTable();
@@ -2293,13 +2236,9 @@
             // Add test user
             users.push(testUser);
             
-            // Save to localStorage
-            localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
-            console.log('🧪 Users after save:', users.length);
-            
-            // CRITICAL: Also store with mobile app key for testing
-            localStorage.setItem('syncedUsers', JSON.stringify(users));
-            console.log('🧪 Users also stored for mobile app with key "syncedUsers"');
+            // Save to Firestore (no localStorage)
+            await saveUsersToStorage();
+            console.log('🧪 Users saved to Firestore:', users.length);
             
             // Render table
             renderUsersTable();
