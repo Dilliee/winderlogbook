@@ -2206,9 +2206,9 @@
             form.dispatchEvent(event);
         }
 
-        // Debug function to test localStorage directly
-        function debugUserCreation() {
-            console.log('🧪 Testing localStorage user creation...');
+        // Debug function to test Firestore user creation directly
+        async function debugUserCreation() {
+            console.log('🧪 Testing Firestore user creation...');
             
             const testUser = {
                 userId: 'test_' + Date.now(),
