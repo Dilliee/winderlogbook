@@ -1750,8 +1750,10 @@
 
         // Save users to localStorage
         function saveUsersToStorage() {
+            console.log('💾 Saving users to storage:', users);
             localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
             renderUsersTable();
+            console.log('✅ Users saved and table rendered');
         }
 
         // Generate unique user ID
@@ -1776,8 +1778,16 @@
         }
 
         // Handle user form submission
-        document.getElementById('userForm').addEventListener('submit', function(e) {
+        function initializeUserForm() {
+            const userForm = document.getElementById('userForm');
+            if (!userForm) {
+                console.error('User form not found!');
+                return;
+            }
+            
+            userForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log('📝 Form submitted!');
             
             const userData = {
                 employeeId: document.getElementById('employeeId').value,
@@ -1829,7 +1839,8 @@
             this.reset();
             document.getElementById('fingerprintData').value = '';
             document.getElementById('fingerprintStatus').innerHTML = '';
-        });
+            });
+        }
 
         // Render users table
         function renderUsersTable() {
@@ -2002,6 +2013,7 @@
         // Load users when page loads
         loadUsersFromStorage();
         updateSyncStatus();
+        initializeUserForm();
     </script>
 </body>
 </html>
