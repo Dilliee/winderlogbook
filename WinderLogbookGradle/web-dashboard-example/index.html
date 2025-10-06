@@ -1276,7 +1276,9 @@
         window.limit = limit;
 
         // Initialize dashboard when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeDashboard();
+        });
     </script>
 
     <script>
@@ -2252,9 +2254,9 @@
         window.debugUserCreation = debugUserCreation;
 
         // Initialize everything when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 DOM loaded, initializing user management...');
-            loadUsersFromStorage();
+            await loadUsersFromStorage();
             updateSyncStatus();
             initializeUserForm();
             
