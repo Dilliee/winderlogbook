@@ -1733,10 +1733,65 @@
                     }
                 }
                 
-                // No localStorage fallback - require Firestore
-                console.error('❌ No users found in Firestore');
-                showNotification('⚠️ No users found in cloud storage. Please create users.', 'warning');
-                users = [];
+                // No users found in Firestore - create demo users
+                console.log('👥 No users found in Firestore, creating demo users...');
+                users = [
+                    {
+                        userId: generateUserId(),
+                        employeeId: 'EMP001',
+                        name: 'John Doe',
+                        username: 'jdoe',
+                        password: 'password123',
+                        email: 'john.doe@lucara.com',
+                        phone: '+267 123 4567',
+                        jobDescription: 'Winder Driver',
+                        department: 'Operations',
+                        shift: 'Day',
+                        accessLevel: 'user',
+                        fingerprintData: 'demo_fingerprint_1',
+                        biometricEnrolled: true,
+                        status: 'active',
+                        createdAt: Date.now()
+                    },
+                    {
+                        userId: generateUserId(),
+                        employeeId: 'EMP002',
+                        name: 'Jane Smith',
+                        username: 'jsmith',
+                        password: 'password123',
+                        email: 'jane.smith@lucara.com',
+                        phone: '+267 234 5678',
+                        jobDescription: 'Electrician',
+                        department: 'Electrical',
+                        shift: 'Night',
+                        accessLevel: 'user',
+                        fingerprintData: 'demo_fingerprint_2',
+                        biometricEnrolled: true,
+                        status: 'active',
+                        createdAt: Date.now()
+                    },
+                    {
+                        userId: generateUserId(),
+                        employeeId: 'EMP003',
+                        name: 'Mike Johnson',
+                        username: 'mjohnson',
+                        password: 'password123',
+                        email: 'mike.johnson@lucara.com',
+                        phone: '+267 345 6789',
+                        jobDescription: 'Maintenance Technician',
+                        department: 'Maintenance',
+                        shift: 'Day',
+                        accessLevel: 'user',
+                        fingerprintData: 'demo_fingerprint_3',
+                        biometricEnrolled: true,
+                        status: 'active',
+                        createdAt: Date.now()
+                    }
+                ];
+                
+                // Save demo users to Firestore
+                await saveUsersToStorage();
+                showNotification('✅ Demo users created and saved to Firestore', 'success');
                 
             } catch (error) {
                 console.error('❌ Error loading users from Firestore:', error);
@@ -2183,7 +2238,7 @@
 
         // Test function to verify form submission
         function testFormSubmission() {
-            console.log('🧪 Testing form submission...');
+            console.log('🧪 Testing form submission...'); // Form test
             
             // Fill form with test data
             document.getElementById('employeeId').value = 'EMP999';
