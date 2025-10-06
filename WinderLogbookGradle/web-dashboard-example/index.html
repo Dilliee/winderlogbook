@@ -850,6 +850,7 @@
                     <div class="form-group">
                         <button type="submit" class="btn btn-success">✅ Create User & Sync to App</button>
                         <button type="reset" class="btn btn-warning">🗑️ Clear Form</button>
+                        <button type="button" class="btn btn-info" onclick="testFormSubmission()" style="margin-left: 10px;">🧪 Test Form</button>
                     </div>
                 </form>
             </div>
@@ -1291,11 +1292,7 @@
                 });
             });
 
-            // User form submission
-            const userForm = document.getElementById('userForm');
-            if (userForm) {
-                userForm.addEventListener('submit', handleUserCreation);
-            }
+            // User form submission - handled by initializeUserForm() function
         });
 
         // Dashboard functions
@@ -1613,38 +1610,7 @@
             }
         }
 
-        // User management functions
-        async function handleUserCreation(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const userData = {
-                name: document.getElementById('userName').value,
-                email: document.getElementById('userEmail').value,
-                role: document.getElementById('userRole').value,
-                shift: document.getElementById('userShift').value,
-                permissions: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
-                createdAt: new Date(),
-                status: 'active'
-            };
-
-            try {
-                await addDoc(collection(db, 'users'), userData);
-                
-                // Show success notification
-                showNotification('User created successfully!', 'success');
-                
-                // Reset form
-                event.target.reset();
-                
-                // Reload users list
-                await loadUsers();
-                
-            } catch (error) {
-                console.error('Error creating user:', error);
-                showNotification('Error creating user: ' + error.message, 'error');
-            }
-        }
+        // User management functions - Legacy function removed, now handled by initializeUserForm()
 
         // Utility functions
         function showNotification(message, type = 'success') {
@@ -2010,10 +1976,40 @@
             }
         }
 
-        // Load users when page loads
-        loadUsersFromStorage();
-        updateSyncStatus();
-        initializeUserForm();
+        // Test function to verify form submission
+        function testFormSubmission() {
+            console.log('🧪 Testing form submission...');
+            
+            // Fill form with test data
+            document.getElementById('employeeId').value = 'EMP999';
+            document.getElementById('userName').value = 'Test User';
+            document.getElementById('userUsername').value = 'testuser';
+            document.getElementById('userPassword').value = 'password123';
+            document.getElementById('userEmail').value = 'test@example.com';
+            document.getElementById('userPhone').value = '+267 999 9999';
+            document.getElementById('userJobDescription').value = 'Winder Driver';
+            document.getElementById('userDepartment').value = 'Operations';
+            document.getElementById('userShift').value = 'Day';
+            document.getElementById('userAccessLevel').value = 'user';
+            
+            // Simulate fingerprint capture
+            document.getElementById('fingerprintData').value = 'test_fingerprint_123';
+            
+            console.log('🧪 Test data filled, submitting form...');
+            
+            // Trigger form submission
+            const form = document.getElementById('userForm');
+            const event = new Event('submit', { bubbles: true, cancelable: true });
+            form.dispatchEvent(event);
+        }
+
+        // Initialize everything when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM loaded, initializing user management...');
+            loadUsersFromStorage();
+            updateSyncStatus();
+            initializeUserForm();
+        });
     </script>
 </body>
 </html>
