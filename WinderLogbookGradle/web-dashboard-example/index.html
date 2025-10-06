@@ -1729,6 +1729,25 @@
         function saveUsersToStorage() {
             console.log('💾 Saving users to storage:', users);
             localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+            
+            // CRITICAL: Also sync to mobile app key
+            const syncData = users.map(u => ({
+                userId: u.userId,
+                employeeId: u.employeeId,
+                name: u.name,
+                username: u.username,
+                password: u.password,
+                email: u.email,
+                jobDescription: u.jobDescription,
+                department: u.department,
+                shift: u.shift,
+                accessLevel: u.accessLevel,
+                fingerprintData: u.fingerprintData,
+                biometricEnrolled: u.biometricEnrolled
+            }));
+            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
+            console.log('📱 Users also synced to mobile app key "syncedUsers":', syncData.length);
+            
             renderUsersTable();
             console.log('✅ Users saved and table rendered');
         }
@@ -1953,12 +1972,16 @@
             localStorage.setItem('lastSyncTime', Date.now().toString());
             localStorage.setItem('autoSyncData', JSON.stringify(syncData));
             
+            // CRITICAL: Store users with the key that mobile app expects
+            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
+            console.log('📱 Users stored for mobile app with key "syncedUsers":', syncData.length);
+            
             // Update sync status in UI
             updateSyncStatus();
             
             // Show notification
             setTimeout(() => {
-                showNotification(`🔄 Auto-sync: User data updated for mobile app`, 'info');
+                showNotification(`🔄 Auto-sync: ${syncData.length} user(s) synced to mobile app`, 'info');
             }, 500);
         }
 
@@ -1981,6 +2004,10 @@
             
             localStorage.setItem('lastSyncTime', Date.now().toString());
             
+            // CRITICAL: Store users with the key that mobile app expects
+            localStorage.setItem('syncedUsers', JSON.stringify(syncData));
+            console.log('📱 Manual sync: Users stored for mobile app with key "syncedUsers":', syncData.length);
+            
             // Generate download file
             const dataStr = JSON.stringify(syncData, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -1990,7 +2017,7 @@
             link.download = 'winder_logbook_users.json';
             link.click();
             
-            showNotification(`${syncData.length} users synced successfully! JSON file downloaded.`, 'success');
+            showNotification(`${syncData.length} users synced successfully! JSON file downloaded and stored for mobile app.`, 'success');
         }
 
         // Generate sync code
@@ -2135,6 +2162,10 @@
             // Save to localStorage
             localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
             console.log('🧪 Users after save:', users.length);
+            
+            // CRITICAL: Also store with mobile app key for testing
+            localStorage.setItem('syncedUsers', JSON.stringify(users));
+            console.log('🧪 Users also stored for mobile app with key "syncedUsers"');
             
             // Render table
             renderUsersTable();
