@@ -735,18 +735,65 @@
                 <form id="userForm">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="userName">Full Name</label>
-                            <input type="text" class="form-control" id="userName" required>
+                            <label for="employeeId">Employee ID *</label>
+                            <input type="text" class="form-control" id="employeeId" placeholder="e.g., EMP001" required>
                         </div>
                         <div class="form-group">
-                            <label for="userEmail">Email Address</label>
-                            <input type="email" class="form-control" id="userEmail" required>
+                            <label for="userName">Full Name *</label>
+                            <input type="text" class="form-control" id="userName" placeholder="e.g., John Doe" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userEmail">Email Address *</label>
+                            <input type="email" class="form-control" id="userEmail" placeholder="john.doe@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userPhone">Phone Number</label>
+                            <input type="tel" class="form-control" id="userPhone" placeholder="+267 123 4567">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userUsername">Username *</label>
+                            <input type="text" class="form-control" id="userUsername" placeholder="e.g., jdoe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userPassword">Password *</label>
+                            <input type="password" class="form-control" id="userPassword" placeholder="Min 8 characters" required minlength="8">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userJobDescription">Job Description *</label>
+                            <select class="form-control" id="userJobDescription" required>
+                                <option value="">Select Job Description</option>
+                                <option value="Winder Driver">Winder Driver</option>
+                                <option value="Electrician">Electrician</option>
+                                <option value="Fitter">Fitter</option>
+                                <option value="Boilermaker">Boilermaker</option>
+                                <option value="Engineer">Engineer</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Safety Officer">Safety Officer</option>
+                                <option value="Maintenance Technician">Maintenance Technician</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userDepartment">Department *</label>
+                            <select class="form-control" id="userDepartment" required>
+                                <option value="">Select Department</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Safety">Safety</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="userRole">Primary Role</label>
-                            <select class="form-control" id="userRole" required>
+                            <select class="form-control" id="userRole">
                                 <option value="">Select Role</option>
                                 <option value="engineer">Engineer</option>
                                 <option value="electrician">Electrician</option>
@@ -759,31 +806,33 @@
                         </div>
                         <div class="form-group">
                             <label for="userShift">Default Shift</label>
-                            <select class="form-control" id="userShift" required>
-                                <option value="">Select Shift</option>
-                                <option value="morning">Morning (6:00 - 14:00)</option>
-                                <option value="afternoon">Afternoon (14:00 - 22:00)</option>
-                                <option value="night">Night (22:00 - 6:00)</option>
+                            <select class="form-control" id="userShift">
+                                <option value="Day">Day Shift</option>
+                                <option value="Night">Night Shift</option>
+                                <option value="Rotating">Rotating</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userAccessLevel">Access Level</label>
+                        <select class="form-control" id="userAccessLevel">
+                            <option value="user">Standard User</option>
+                            <option value="supervisor">Supervisor</option>
+                            <option value="admin">Administrator</option>
+                        </select>
                     </div>
                     
                     <!-- Biometric Capture Section -->
                     <div class="form-group">
-                        <label>Biometric Authentication Setup</label>
-                        <div class="biometric-capture-section">
-                            <div class="biometric-info">
-                                <p>📱 Biometric data will be captured on the user's first mobile app login</p>
-                                <p>🔐 Supported: Fingerprint, Face ID, Voice Recognition</p>
-                            </div>
-                            <div class="biometric-controls">
-                                <label><input type="checkbox" id="enableFingerprint" checked> Enable Fingerprint</label>
-                                <label><input type="checkbox" id="enableFaceID" checked> Enable Face ID</label>
-                                <label><input type="checkbox" id="enableVoice"> Enable Voice Recognition</label>
-                            </div>
-                            <div class="biometric-status" id="biometricStatus">
-                                <span class="status-badge status-yellow">Pending Setup</span>
-                            </div>
+                        <label>👆 Biometric Fingerprint Capture</label>
+                        <div class="biometric-capture-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 8px; text-align: center; color: white;">
+                            <div class="fingerprint-icon" style="font-size: 60px; margin: 15px 0;">🖐️</div>
+                            <p style="margin-bottom: 15px;">Click the button below to capture fingerprint data</p>
+                            <button type="button" class="btn btn-success" onclick="captureFingerprint()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                                📸 Capture Fingerprint
+                            </button>
+                            <input type="hidden" id="fingerprintData">
+                            <div id="fingerprintStatus" style="margin-top: 15px; font-weight: bold;"></div>
                         </div>
                     </div>
                     
@@ -799,8 +848,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-success">Create User</button>
-                        <button type="reset" class="btn btn-warning">Clear Form</button>
+                        <button type="submit" class="btn btn-success">✅ Create User & Sync to App</button>
+                        <button type="reset" class="btn btn-warning">🗑️ Clear Form</button>
                     </div>
                 </form>
             </div>
@@ -813,11 +862,11 @@
                 <table class="table">
                     <thead>
                         <tr>
+                            <th>Employee ID</th>
                             <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Shift</th>
-                            <th>Status</th>
+                            <th>Job Description</th>
+                            <th>Department</th>
+                            <th>Biometric Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -825,6 +874,25 @@
                         <!-- Users will be populated here -->
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Sync to Mobile Section -->
+            <div class="form-container" style="margin-top: 30px;">
+                <h3>🔄 Sync Users to Mobile App</h3>
+                <p>Download user data to sync with the Android application</p>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="syncUsersToMobile()">
+                        <i>🔄</i> Sync All Users to Devices
+                    </button>
+                    <button class="btn btn-success" onclick="generateSyncCode()">
+                        <i>🔑</i> Generate Sync Code
+                    </button>
+                </div>
+                <div id="syncCodeDisplay" style="display: none; margin-top: 20px; padding: 20px; background: #f0f4ff; border-radius: 8px;">
+                    <h4>Sync Code Generated</h4>
+                    <input type="text" id="syncCodeValue" readonly style="width: 100%; padding: 12px; font-size: 24px; text-align: center; letter-spacing: 5px; font-weight: bold; margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="copySyncCode()" style="margin-top: 10px;">📋 Copy Code</button>
+                </div>
             </div>
         </div>
 
@@ -1609,6 +1677,259 @@
                 document.getElementById('sidebar').classList.add('collapsed');
             }
         });
+
+        // ==================== BIOMETRIC USER MANAGEMENT SYSTEM ====================
+        
+        let users = [];
+        let editingUserId = null;
+
+        // Load users from localStorage on startup
+        function loadUsersFromStorage() {
+            const storedUsers = localStorage.getItem('winderLogbookUsers');
+            if (storedUsers) {
+                users = JSON.parse(storedUsers);
+            } else {
+                // Create demo users
+                users = [
+                    {
+                        userId: generateUserId(),
+                        employeeId: 'EMP001',
+                        name: 'John Doe',
+                        username: 'jdoe',
+                        password: 'password123',
+                        email: 'john.doe@lucara.com',
+                        phone: '+267 123 4567',
+                        jobDescription: 'Winder Driver',
+                        department: 'Operations',
+                        shift: 'Day',
+                        accessLevel: 'user',
+                        fingerprintData: 'demo_fingerprint_1',
+                        biometricEnrolled: true,
+                        status: 'active',
+                        createdAt: Date.now()
+                    },
+                    {
+                        userId: generateUserId(),
+                        employeeId: 'EMP002',
+                        name: 'Jane Smith',
+                        username: 'jsmith',
+                        password: 'password123',
+                        email: 'jane.smith@lucara.com',
+                        phone: '+267 234 5678',
+                        jobDescription: 'Electrician',
+                        department: 'Electrical',
+                        shift: 'Night',
+                        accessLevel: 'user',
+                        fingerprintData: 'demo_fingerprint_2',
+                        biometricEnrolled: true,
+                        status: 'active',
+                        createdAt: Date.now()
+                    }
+                ];
+                saveUsersToStorage();
+            }
+            renderUsersTable();
+        }
+
+        // Save users to localStorage
+        function saveUsersToStorage() {
+            localStorage.setItem('winderLogbookUsers', JSON.stringify(users));
+            renderUsersTable();
+        }
+
+        // Generate unique user ID
+        function generateUserId() {
+            return 'U' + Date.now() + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Capture fingerprint (simulated)
+        function captureFingerprint() {
+            const statusDiv = document.getElementById('fingerprintStatus');
+            statusDiv.innerHTML = '<p style="color: #ffc107;">⏳ Capturing fingerprint...</p>';
+            
+            setTimeout(() => {
+                const fingerprintData = 'FP_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                document.getElementById('fingerprintData').value = fingerprintData;
+                
+                statusDiv.innerHTML = `
+                    <p style="color: #28a745; font-weight: bold;">✅ Fingerprint captured successfully!</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Fingerprint ID: ${fingerprintData}</p>
+                `;
+            }, 2000);
+        }
+
+        // Handle user form submission
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userData = {
+                employeeId: document.getElementById('employeeId').value,
+                name: document.getElementById('userName').value,
+                username: document.getElementById('userUsername').value,
+                password: document.getElementById('userPassword').value,
+                email: document.getElementById('userEmail').value,
+                phone: document.getElementById('userPhone').value,
+                jobDescription: document.getElementById('userJobDescription').value,
+                department: document.getElementById('userDepartment').value,
+                shift: document.getElementById('userShift').value,
+                role: document.getElementById('userRole').value,
+                accessLevel: document.getElementById('userAccessLevel').value,
+                fingerprintData: document.getElementById('fingerprintData').value,
+                biometricEnrolled: !!document.getElementById('fingerprintData').value,
+                status: 'active'
+            };
+            
+            if (editingUserId) {
+                // Update existing user
+                const userIndex = users.findIndex(u => u.userId === editingUserId);
+                if (userIndex !== -1) {
+                    users[userIndex] = {
+                        ...users[userIndex],
+                        ...userData,
+                        updatedAt: Date.now()
+                    };
+                    showNotification(`User ${userData.name} updated successfully!`, 'success');
+                }
+                editingUserId = null;
+            } else {
+                // Create new user
+                const newUser = {
+                    ...userData,
+                    userId: generateUserId(),
+                    createdAt: Date.now()
+                };
+                users.push(newUser);
+                showNotification(`User ${newUser.name} created successfully! Ready to sync to app.`, 'success');
+            }
+            
+            saveUsersToStorage();
+            this.reset();
+            document.getElementById('fingerprintData').value = '';
+            document.getElementById('fingerprintStatus').innerHTML = '';
+        });
+
+        // Render users table
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersList');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const biometricStatus = user.biometricEnrolled 
+                    ? '<span class="status-badge status-green">✅ Enrolled</span>' 
+                    : '<span class="status-badge status-yellow">⏳ Pending</span>';
+                    
+                row.innerHTML = `
+                    <td>${user.employeeId}</td>
+                    <td>${user.name}</td>
+                    <td>${user.jobDescription}</td>
+                    <td>${user.department}</td>
+                    <td>${biometricStatus}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editUser('${user.userId}')" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">✏️ Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.userId}')" style="padding: 5px 10px; font-size: 12px;">🗑️ Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Edit user
+        function editUser(userId) {
+            const user = users.find(u => u.userId === userId);
+            if (!user) return;
+            
+            editingUserId = userId;
+            
+            document.getElementById('employeeId').value = user.employeeId || '';
+            document.getElementById('userName').value = user.name || '';
+            document.getElementById('userUsername').value = user.username || '';
+            document.getElementById('userPassword').value = user.password || '';
+            document.getElementById('userEmail').value = user.email || '';
+            document.getElementById('userPhone').value = user.phone || '';
+            document.getElementById('userJobDescription').value = user.jobDescription || '';
+            document.getElementById('userDepartment').value = user.department || '';
+            document.getElementById('userShift').value = user.shift || 'Day';
+            document.getElementById('userRole').value = user.role || '';
+            document.getElementById('userAccessLevel').value = user.accessLevel || 'user';
+            document.getElementById('fingerprintData').value = user.fingerprintData || '';
+            
+            if (user.biometricEnrolled && user.fingerprintData) {
+                document.getElementById('fingerprintStatus').innerHTML = `
+                    <p style="color: #28a745; font-weight: bold;">✅ Fingerprint enrolled</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Fingerprint ID: ${user.fingerprintData}</p>
+                `;
+            }
+            
+            // Scroll to form
+            document.getElementById('userForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Delete user
+        function deleteUser(userId) {
+            const user = users.find(u => u.userId === userId);
+            if (!user) return;
+            
+            if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+                users = users.filter(u => u.userId !== userId);
+                saveUsersToStorage();
+                showNotification(`User ${user.name} deleted successfully`, 'success');
+            }
+        }
+
+        // Sync users to mobile
+        function syncUsersToMobile() {
+            const syncData = users.map(u => ({
+                userId: u.userId,
+                employeeId: u.employeeId,
+                name: u.name,
+                username: u.username,
+                password: u.password,
+                email: u.email,
+                jobDescription: u.jobDescription,
+                department: u.department,
+                shift: u.shift,
+                accessLevel: u.accessLevel,
+                fingerprintData: u.fingerprintData,
+                biometricEnrolled: u.biometricEnrolled
+            }));
+            
+            localStorage.setItem('lastSyncTime', Date.now().toString());
+            
+            // Generate download file
+            const dataStr = JSON.stringify(syncData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'winder_logbook_users.json';
+            link.click();
+            
+            showNotification(`${syncData.length} users synced successfully! JSON file downloaded.`, 'success');
+        }
+
+        // Generate sync code
+        function generateSyncCode() {
+            const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+            localStorage.setItem('syncCode', code);
+            localStorage.setItem('syncCodeData', JSON.stringify(users));
+            
+            document.getElementById('syncCodeValue').value = code;
+            document.getElementById('syncCodeDisplay').style.display = 'block';
+            
+            showNotification(`Sync code generated: ${code}`, 'success');
+        }
+
+        // Copy sync code
+        function copySyncCode() {
+            const codeInput = document.getElementById('syncCodeValue');
+            codeInput.select();
+            document.execCommand('copy');
+            showNotification('Sync code copied to clipboard!', 'success');
+        }
+
+        // Load users when page loads
+        loadUsersFromStorage();
     </script>
 </body>
 </html>
